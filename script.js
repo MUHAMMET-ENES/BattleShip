@@ -1,186 +1,221 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const userGrid = document.querySelector('#player-grid');
+    // Seçiciler
+    const userGrid = document.querySelector('#user-grid');
     const computerGrid = document.querySelector('#computer-grid');
-    const displayGrid = document.querySelector('#player-grid');
-    const userSquares = [];
-    const computerSquares = [];
-    const width = 10; // Izgara genişliği (10x10)
+    const shipDock = document.querySelector('.ship-dock');
+    const ships = document.querySelectorAll('.ship-preview');
+    const rotateBtn = document.querySelector('#rotate-btn');
+    const startWarBtn = document.querySelector('#start-war-btn');
+    const infoText = document.querySelector('#info-text');
+    const setupPanel = document.querySelector('#setup-panel');
+    const gameContainer = document.querySelector('#game-container');
+    const mainMenu = document.querySelector('#main-menu');
+    const startBtn = document.querySelector('#start-btn');
 
-    // Gemilerimiz ve Boyutları
-    const shipArray = [
-        { name: 'destroyer', directions: [[0, 1], [0, width]] }, // 2 birim
-        { name: 'submarine', directions: [[0, 1, 2], [0, width, width*2]] }, // 3 birim
-        { name: 'cruiser', directions: [[0, 1, 2], [0, width, width*2]] }, // 3 birim
-        { name: 'battleship', directions: [[0, 1, 2, 3], [0, width, width*2, width*3]] }, // 4 birim
-        { name: 'carrier', directions: [[0, 1, 2, 3, 4], [0, width, width*2, width*3, width*4]] }, // 5 birim
-    ];
+    let isHorizontal = true;
+    let draggedShipLength = 0;
+    let draggedShipElement = null;
+    let userSquares = [];
+    let computerSquares = [];
+    let width = 10;
+    let isGameOver = false;
+    let playerTurn = true;
+    let shipsPlaced = 0;
 
-    // 1. IZGARALARI OLUŞTURMA FONKSİYONU
+    // --- 1. OYUN BAŞLATMA ---
+    startBtn.addEventListener('click', () => {
+        mainMenu.style.display = 'none';
+        gameContainer.style.display = 'flex';
+        createBoard(userGrid, userSquares);
+        createBoard(computerGrid, computerSquares);
+        // Bilgisayar gemilerini şimdi gizlice yerleştirsin
+        placeComputerShips(); 
+    });
+
+    // --- 2. GRID OLUŞTURMA ---
     function createBoard(grid, squares) {
-        for (let i = 0; i < width * width; i++) {
+        for (let i = 0; i < 100; i++) {
             const square = document.createElement('div');
-            square.dataset.id = i; // Her kareye 0-99 arası kimlik ver
+            square.dataset.id = i;
             square.classList.add('cell');
             grid.appendChild(square);
             squares.push(square);
         }
     }
 
-    createBoard(userGrid, userSquares);
-    createBoard(computerGrid, computerSquares);
-
-    // 2. GEMİLERİ RASTGELE YERLEŞTİRME ALGORİTMASI
-    function generate(ship) {
-        let randomDirection = Math.floor(Math.random() * ship.directions.length);
-        let current = ship.directions[randomDirection];
-        
-        if (randomDirection === 0) direction = 1; // Yatay
-        if (randomDirection === 1) direction = 10; // Dikey
-
-        // Başlangıç noktası için rastgele bir kare seç (0-99)
-        // Ancak taşmayı önlemek için sınırları hesapla
-        let randomStart = Math.abs(Math.floor(Math.random() * computerSquares.length - (ship.directions[0].length * direction)));
-
-        const isTaken = current.some(index => computerSquares[randomStart + index].classList.contains('taken'));
-        const isAtRightEdge = current.some(index => (randomStart + index) % width === width - 1);
-        const isAtLeftEdge = current.some(index => (randomStart + index) % width === 0);
-
-        // Hata Kontrolü (Kenara çarptı mı? Başka gemi var mı?)
-        if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
-            current.forEach(index => {
-                computerSquares[randomStart + index].classList.add('taken', ship.name);
-                // Bilgisayarın gemilerini gizli tutuyoruz, sadece class ekledik.
-            });
-        } else {
-            generate(ship); // Eğer yerleşemezse fonksiyonu tekrar çağır (Recursive)
-        }
-    }
-    
-    // Bilgisayar için gemileri yerleştir
-    shipArray.forEach(ship => generate(ship));
-
-    // --- OYUNCU İÇİN GEMİ YERLEŞTİRME (Şimdilik aynısını oyuncuya da yapalım) ---
-    // Normalde oyuncu sürükleyip bırakır ama basitlik için senin gemilerini de rastgele dizeceğim.
-    
-    function generateUser(ship) {
-        let randomDirection = Math.floor(Math.random() * ship.directions.length);
-        let current = ship.directions[randomDirection];
-        if (randomDirection === 0) direction = 1; 
-        if (randomDirection === 1) direction = 10; 
-
-        let randomStart = Math.abs(Math.floor(Math.random() * userSquares.length - (ship.directions[0].length * direction)));
-
-        const isTaken = current.some(index => userSquares[randomStart + index].classList.contains('taken'));
-        const isAtRightEdge = current.some(index => (randomStart + index) % width === width - 1);
-        const isAtLeftEdge = current.some(index => (randomStart + index) % width === 0);
-
-        if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
-            current.forEach(index => {
-                userSquares[randomStart + index].classList.add('taken', 'ship', ship.name); 
-                // 'ship' class'ı CSS'de yeşil görünmesini sağlıyor!
-            });
-        } else {
-            generateUser(ship); 
-        }
-    }
-
-    // Butona basınca gemileri tekrar dizmek için
-    const randomBtn = document.querySelector('#random-btn');
-    randomBtn.addEventListener('click', () => {
-        // Mevcut gemileri temizle
-        userSquares.forEach(square => {
-            square.className = 'cell'; 
+    // --- 3. DÖNDÜRME (Rotate) ---
+    function toggleRotate() {
+        isHorizontal = !isHorizontal;
+        rotateBtn.innerText = isHorizontal ? "Döndür (Yatay)" : "Döndür (Dikey)";
+        // Dock'taki gemilerin şeklini değiştir
+        ships.forEach(ship => {
+            if (isHorizontal) {
+                ship.style.width = `${ship.dataset.length * 35}px`;
+                ship.style.height = '35px';
+                ship.style.flexDirection = 'row';
+            } else {
+                ship.style.width = '35px';
+                ship.style.height = `${ship.dataset.length * 35}px`;
+                ship.style.flexDirection = 'column';
+            }
         });
-        // Yeniden diz
-        shipArray.forEach(ship => generateUser(ship));
-    });
-
-    // İlk açılışta senin gemilerini yerleştir
-    shipArray.forEach(ship => generateUser(ship));
-    // --- SAVAŞ BAŞLASIN ---
-    let isGameOver = false;
-    let currentPlayer = 'user';
-    const startButton = document.querySelector('#start-btn');
-    const infoDisplay = document.querySelector('#status-text');
+    }
+    rotateBtn.addEventListener('click', toggleRotate);
     
-    // Toplam vurulması gereken parça sayısı (5+4+3+3+2 = 17)
-    let cpuDestroyed = 0;
-    let userDestroyed = 0;
-
-    // Oyunu Başlat Butonu
-    startButton.addEventListener('click', () => {
-        if(startButton.innerText === "Savaşı Başlat") {
-            // Bilgisayarın gridine tıklama olaylarını ekle
-            computerSquares.forEach(square => square.addEventListener('click', function(e) {
-                if(!isGameOver) revealSquare(square);
-            }));
-            infoDisplay.innerHTML = "Hedef Seç: Düşman sularına tıkla!";
-            startButton.innerText = "Savaş Sürüyor...";
-            startButton.disabled = true; // Tekrar basılamasın
-        }
+    // Klavye ile Döndürme ('R' tuşu veya Space)
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'KeyR') toggleRotate();
     });
 
-    // --- SENİN HAMLEN ---
-    function revealSquare(square) {
-        // Zaten tıklanmışsa işlem yapma
-        if (square.classList.contains('hit') || square.classList.contains('miss')) return;
+    // --- 4. SÜRÜKLE & BIRAK (Drag and Drop) ---
+    ships.forEach(ship => {
+        ship.addEventListener('dragstart', dragStart);
+        ship.addEventListener('dragend', dragEnd);
+    });
 
-        if (square.classList.contains('taken')) {
-            // İSABET!
-            square.classList.add('hit');
-            infoDisplay.innerHTML = "VURDUN! Düşman gemisi hasar aldı.";
-            cpuDestroyed++;
-            checkForWins();
-        } else {
-            // ISKA!
-            square.classList.add('miss');
-            infoDisplay.innerHTML = "ISKA! Sıra bilgisayarda...";
-        }
-        
-        // Sırayı bilgisayara ver
-        currentPlayer = 'computer';
-        if(!isGameOver) setTimeout(computerGo, 1000); // 1 saniye bekle (düşünme efekti)
+    userSquares.forEach(square => {
+        square.addEventListener('dragstart', dragStart);
+        square.addEventListener('dragover', dragOver);
+        square.addEventListener('dragenter', dragEnter);
+        square.addEventListener('dragleave', dragLeave);
+        square.addEventListener('drop', dragDrop);
+    });
+
+    function dragStart(e) {
+        draggedShipLength = parseInt(this.dataset.length);
+        draggedShipElement = this;
     }
 
-    // --- BİLGİSAYARIN HAMLESİ (Yapay Zeka) ---
-    function computerGo() {
-        if(isGameOver) return;
+    function dragOver(e) { e.preventDefault(); }
+    function dragEnter(e) { e.preventDefault(); }
+    function dragLeave() { }
+    function dragEnd() { }
 
-        infoDisplay.innerHTML = "Bilgisayar nişan alıyor...";
+    function dragDrop() {
+        let shipNameWithLastId = draggedShipElement.lastChild.id;
+        let startId = parseInt(this.dataset.id);
         
-        // Basit Zeka: Rastgele geçerli bir kare bulana kadar dene
-        let random = Math.floor(Math.random() * userSquares.length);
-        
-        // Eğer bu kareye daha önce ateş edildiyse, yeni sayı üret
-        while (userSquares[random].classList.contains('hit') || userSquares[random].classList.contains('miss')) {
-            random = Math.floor(Math.random() * userSquares.length);
-        }
+        // Sınır Kontrolü
+        if (checkValidity(userSquares, startId, draggedShipLength, isHorizontal)) {
+            // Gemiyi Yerleştir
+            for (let i = 0; i < draggedShipLength; i++) {
+                let index = isHorizontal ? startId + i : startId + (i * 10);
+                userSquares[index].classList.add('taken', 'ship');
+            }
+            // Dock'tan gemiyi kaldır
+            shipDock.removeChild(draggedShipElement);
+            shipsPlaced++;
 
-        const targetSquare = userSquares[random];
-
-        if (targetSquare.classList.contains('taken')) {
-            targetSquare.classList.add('hit');
-            infoDisplay.innerHTML = "DİKKAT! Gemin vuruldu!";
-            userDestroyed++;
-            checkForWins();
+            if (shipsPlaced === 5) {
+                infoText.innerText = "Tüm gemiler yerleşti! Savaşa hazır mısın?";
+                startWarBtn.style.display = "block";
+                rotateBtn.style.display = "none";
+            }
         } else {
-            targetSquare.classList.add('miss');
-            infoDisplay.innerHTML = "Bilgisayar ıskaladı. Sıra sende.";
+            // Hata mesajı veya titreme efekti eklenebilir
         }
-        
-        currentPlayer = 'user';
     }
 
-    // --- KAZANMA KONTROLÜ ---
-    function checkForWins() {
-        if (cpuDestroyed === 17) {
-            infoDisplay.innerHTML = "TEBRİKLER! TÜM DÜŞMAN FİLOSUNU YOK ETTİNİZ! 🏆";
-            infoDisplay.style.color = "#00ff9d"; // Neon Yeşil
+    // Yerleştirme Kuralları (Taşma var mı?)
+    function checkValidity(squares, startIndex, length, isHorizontal) {
+        let valid = true;
+        for (let i = 0; i < length; i++) {
+            let index = isHorizontal ? startIndex + i : startIndex + (i * 10);
+            
+            // Grid dışına çıkma kontrolü
+            if (index >= 100) return false;
+            
+            // Yatayda sağ kenardan taşma kontrolü
+            if (isHorizontal && (index % 10 === 0 && i !== 0)) return false; 
+            
+            // Zaten dolu mu?
+            if (squares[index].classList.contains('taken')) return false;
+        }
+        return true;
+    }
+
+    // --- 5. BİLGİSAYAR GEMİLERİNİ YERLEŞTİR ---
+    function placeComputerShips() {
+        const lengths = [5, 4, 3, 3, 2];
+        lengths.forEach(len => {
+            let placed = false;
+            while (!placed) {
+                let randomIdx = Math.floor(Math.random() * 100);
+                let randomDir = Math.random() > 0.5; // True = Horizontal
+                if (checkValidity(computerSquares, randomIdx, len, randomDir)) {
+                    for (let i = 0; i < len; i++) {
+                        let idx = randomDir ? randomIdx + i : randomIdx + (i * 10);
+                        computerSquares[idx].classList.add('taken'); 
+                        // 'ship' class'ı eklemedik, yani görünmezler!
+                    }
+                    placed = true;
+                }
+            }
+        });
+    }
+
+    // --- 6. SAVAŞ MANTIĞI ---
+    startWarBtn.addEventListener('click', () => {
+        setupPanel.style.display = 'none';
+        infoText.innerText = "Sıra Sende! Düşman sularına ateş et.";
+        playGame();
+    });
+
+    function playGame() {
+        if (isGameOver) return;
+        
+        computerSquares.forEach(square => {
+            square.addEventListener('click', function(e) {
+                if (!isGameOver && playerTurn && !square.classList.contains('hit') && !square.classList.contains('miss')) {
+                    if (square.classList.contains('taken')) {
+                        square.classList.add('hit');
+                        infoText.innerText = "VURDUN! Tekrar ateş et!";
+                        checkWin();
+                    } else {
+                        square.classList.add('miss');
+                        infoText.innerText = "ISKA! Sıra Bilgisayarda...";
+                        playerTurn = false;
+                        setTimeout(computerTurn, 800);
+                    }
+                }
+            });
+        });
+    }
+
+    function computerTurn() {
+        if (isGameOver) return;
+        
+        let validMove = false;
+        while (!validMove) {
+            let random = Math.floor(Math.random() * 100);
+            const square = userSquares[random];
+            if (!square.classList.contains('hit') && !square.classList.contains('miss')) {
+                if (square.classList.contains('taken')) {
+                    square.classList.add('hit');
+                    infoText.innerText = "EYVAH! Gemin vuruldu!";
+                    checkWin();
+                    validMove = true;
+                    setTimeout(computerTurn, 800); // Vurursa tekrar oynasın
+                } else {
+                    square.classList.add('miss');
+                    infoText.innerText = "Bilgisayar Iskalandı. Sıra Sende.";
+                    playerTurn = true;
+                    validMove = true;
+                }
+            }
+        }
+    }
+
+    function checkWin() {
+        const playerWins = computerSquares.filter(s => s.classList.contains('taken')).every(s => s.classList.contains('hit'));
+        const computerWins = userSquares.filter(s => s.classList.contains('taken')).every(s => s.classList.contains('hit'));
+
+        if (playerWins) {
+            infoText.innerText = "TEBRİKLER! Düşman filosunu yok ettin! 🏆";
             isGameOver = true;
         }
-        if (userDestroyed === 17) {
-            infoDisplay.innerHTML = "KAYBETTİNİZ... Filonuz yok edildi. 💀";
-            infoDisplay.style.color = "#ff2a6d"; // Neon Kırmızı
+        if (computerWins) {
+            infoText.innerText = "KAYBETTİN... Donanman yok oldu. 🏳️";
             isGameOver = true;
         }
     }
