@@ -4,34 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern Battleship</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="main-menu">
-        <h1>BATTLESHIP</h1>
-        <p style="margin-bottom: 30px; color: #718096;">Strateji ve Mantık Oyunu</p>
+        <h1>AMİRAL BATTI</h1>
+        <p style="color: #7f8c8d; margin-bottom: 30px;">Strateji ve Mantık Oyunu</p>
         <button id="start-btn" class="btn-start">OYUNA BAŞLA</button>
     </div>
 
-    <div class="game-container" id="game-container">
+    <div class="game-container">
         
-        <h2 id="info-text" style="color: #334e68;">Gemilerini Yerleştir</h2>
+        <h2 id="info-text" style="color: #2c3e50; margin-bottom: 10px;">Filoları Konuşlandır</h2>
+        <p id="turn-display" style="color: #7f8c8d; height: 20px;"></p>
 
         <div class="boards-row">
             <div class="board-wrapper">
                 <h3>SİZİN SULARINIZ</h3>
-                <div id="user-grid" class="grid"></div>
+                <div id="user-grid" class="grid">
+                    </div>
             </div>
 
             <div class="board-wrapper">
                 <h3>DÜŞMAN SULARI</h3>
-                <div id="computer-grid" class="grid"></div>
+                <div id="computer-grid" class="grid">
+                    </div>
             </div>
         </div>
 
         <div class="setup-panel" id="setup-panel">
-            <p>Gemileri sürükleyip alanınıza bırakın. Yön değiştirmek için <b>'R'</b> tuşuna veya butona basın.</p>
+            <p style="color: #7f8c8d; font-size: 0.9rem;">
+                Gemileri sürükleyip alanınıza bırakın. Yön değiştirmek için <b>'R'</b> tuşuna veya butona basın.
+            </p>
             
             <div class="controls">
                 <button id="rotate-btn" class="btn btn-rotate">Döndür (Yatay)</button>
