@@ -3,42 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Battleship | Modern Amiral Battı</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <title>Modern Battleship</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="main-container">
-        <header>
-            <h1>RADAR WARS</h1>
-            <div class="status-bar" id="status-text">Sistem Hazır. Filoları Konuşlandır.</div>
-        </header>
+    <div id="main-menu">
+        <h1>BATTLESHIP</h1>
+        <p style="margin-bottom: 30px; color: #718096;">Strateji ve Mantık Oyunu</p>
+        <button id="start-btn" class="btn-start">OYUNA BAŞLA</button>
+    </div>
 
-        <div class="game-area">
+    <div class="game-container" id="game-container">
+        
+        <h2 id="info-text" style="color: #334e68;">Gemilerini Yerleştir</h2>
+
+        <div class="boards-row">
+            <div class="board-wrapper">
+                <h3>SİZİN SULARINIZ</h3>
+                <div id="user-grid" class="grid"></div>
+            </div>
+
+            <div class="board-wrapper">
+                <h3>DÜŞMAN SULARI</h3>
+                <div id="computer-grid" class="grid"></div>
+            </div>
+        </div>
+
+        <div class="setup-panel" id="setup-panel">
+            <p>Gemileri sürükleyip alanınıza bırakın. Yön değiştirmek için <b>'R'</b> tuşuna veya butona basın.</p>
             
-            <div class="player-board-container">
-                <h2>MÜTTEFİK SULAR</h2>
-                <div id="player-grid" class="grid">
-                    </div>
+            <div class="controls">
+                <button id="rotate-btn" class="btn btn-rotate">Döndür (Yatay)</button>
             </div>
 
-            <div class="computer-board-container">
-                <h2>DÜŞMAN SULARI</h2>
-                <div id="computer-grid" class="grid">
-                    </div>
+            <div class="ship-dock">
+                <div class="ship-preview" draggable="true" data-length="2" style="width: 70px;">2</div>
+                <div class="ship-preview" draggable="true" data-length="3" style="width: 105px;">3</div>
+                <div class="ship-preview" draggable="true" data-length="3" style="width: 105px;">3</div>
+                <div class="ship-preview" draggable="true" data-length="4" style="width: 140px;">4</div>
+                <div class="ship-preview" draggable="true" data-length="5" style="width: 175px;">5</div>
             </div>
 
+            <button id="start-war-btn" class="btn btn-play">SAVAŞI BAŞLAT</button>
         </div>
 
-        <div class="controls">
-            <button id="start-btn" class="btn primary">Savaşı Başlat</button>
-            <button id="random-btn" class="btn secondary">Rastgele Diz</button>
-        </div>
-
-        <footer>
-            <p>Design & Code by [Senin Adın]</p>
-        </footer>
     </div>
 
     <script src="script.js"></script>
