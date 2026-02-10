@@ -1,158 +1,141 @@
 :root {
-    --bg-color: #0f172a;        /* Derin Lacivert Arka Plan */
-    --grid-bg: #1e293b;         /* Grid Arka Planı */
-    --border-color: #334155;    /* Hücre Kenarlıkları */
-    --neon-green: #00ff9d;      /* Dost Gemiler / Metinler */
-    --neon-red: #ff2a6d;        /* Vurulan Gemi (Hit) */
-    --neon-blue: #0ea5e9;       /* Iskalama (Miss) */
-    --cell-size: 35px;          /* Kare Boyutu */
+    --bg-color: #f0f4f8;        /* Açık Gri-Mavi Arka Plan */
+    --primary: #334e68;         /* Koyu Slate Mavisi (Ana Renk) */
+    --accent: #38b2ac;          /* Pastel Turkuaz (Butonlar) */
+    --hit: #fc8181;             /* Pastel Kırmızı (Vuruldu) */
+    --miss: #b3ecff;            /* Çok Açık Mavi (Iska) */
+    --ship-color: #4a5568;      /* Gemi Rengi */
+    --grid-bg: #ffffff;         /* Grid İçi Beyaz */
+    --text-main: #2d3748;       /* Koyu Gri Yazı */
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
 body {
     background-color: var(--bg-color);
-    color: var(--neon-green);
-    font-family: 'Orbitron', sans-serif; /* Tekno Font */
+    color: var(--text-main);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
 }
 
-.main-container {
-    text-align: center;
-    width: 100%;
-    max-width: 900px;
+/* --- ANA MENÜ --- */
+#main-menu {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(240, 244, 248, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
 }
 
-h1 {
-    font-size: 2.5rem;
-    text-shadow: 0 0 10px var(--neon-green); /* Neon Parlama Efekti */
-    margin-bottom: 10px;
-    letter-spacing: 3px;
+#main-menu h1 { font-size: 4rem; color: var(--primary); margin-bottom: 20px; letter-spacing: 5px; }
+
+.btn-start {
+    padding: 15px 50px;
+    font-size: 1.5rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(56, 178, 172, 0.3);
+    transition: transform 0.2s;
 }
 
-.status-bar {
-    background: rgba(0, 255, 157, 0.1);
-    padding: 10px;
-    border: 1px solid var(--neon-green);
-    margin-bottom: 30px;
-    font-size: 1.1rem;
-}
+.btn-start:hover { transform: scale(1.05); }
 
 /* --- OYUN ALANI --- */
-.game-area {
+.game-container {
+    display: none; /* Başlangıçta gizli */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 20px;
+}
+
+.boards-row {
     display: flex;
     justify-content: center;
-    gap: 50px; /* İki tahta arasındaki boşluk */
-    flex-wrap: wrap; /* Mobilde alt alta geçmesi için */
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
 }
 
-h2 {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    color: #94a3b8;
-}
+.board-wrapper { text-align: center; }
+.board-wrapper h3 { color: var(--primary); margin-bottom: 10px; }
 
-/* GRID YAPISI (En Önemli Kısım) */
 .grid {
     display: grid;
-    grid-template-columns: repeat(10, var(--cell-size));
-    grid-template-rows: repeat(10, var(--cell-size));
+    grid-template-columns: repeat(10, 35px);
+    grid-template-rows: repeat(10, 35px);
     gap: 2px;
-    background-color: var(--grid-bg);
-    border: 2px solid var(--border-color);
+    background-color: #cbd5e0;
     padding: 5px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
 }
 
-/* HÜCRELER (JS ile oluşturulacak divler) */
 .cell {
-    width: var(--cell-size);
-    height: var(--cell-size);
-    background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 35px; height: 35px;
+    background-color: var(--grid-bg);
+    border-radius: 3px;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
-.cell:hover {
-    background-color: rgba(0, 255, 157, 0.2); /* Hover efekti */
+.cell:hover { background-color: #e2e8f0; }
+
+/* Durumlar */
+.cell.taken { background-color: var(--ship-color) !important; } /* Sadece senin gemilerin */
+.cell.hit { background-color: var(--hit) !important; animation: pop 0.3s; }
+.cell.miss { background-color: var(--miss) !important; }
+
+/* --- GEMİ YERLEŞTİRME DOCK'U --- */
+.setup-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-/* Oyun Durumları İçin Classlar */
-.cell.ship {
-    background-color: rgba(0, 255, 157, 0.5); /* Kendi gemin */
-    box-shadow: 0 0 10px var(--neon-green);
+.ship-dock {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    min-height: 50px;
 }
 
-.cell.hit {
-    background-color: var(--neon-red); /* Vuruldu! */
-    box-shadow: 0 0 15px var(--neon-red);
-    animation: flash 0.5s;
+.ship-preview {
+    background-color: var(--ship-color);
+    height: 35px;
+    border-radius: 3px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
 }
 
-.cell.miss {
-    background-color: var(--neon-blue); /* Iskalandı */
-    opacity: 0.5;
+.ship-preview.vertical {
+    width: 35px;
+    flex-direction: column;
 }
 
-/* BUTONLAR */
-.controls {
-    margin-top: 30px;
-}
+/* KONTROL BUTONLARI */
+.controls { display: flex; gap: 10px; }
+.btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.btn-rotate { background-color: #cbd5e0; color: #2d3748; }
+.btn-play { background-color: var(--primary); color: white; display: none; }
 
-.btn {
-    padding: 12px 30px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1rem;
-    border: none;
-    cursor: pointer;
-    margin: 0 10px;
-    transition: 0.3s;
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.btn.primary {
-    background-color: var(--neon-green);
-    color: var(--bg-color);
-    box-shadow: 0 0 15px var(--neon-green);
-}
-
-.btn.primary:hover {
-    background-color: #fff;
-    box-shadow: 0 0 25px #fff;
-}
-
-.btn.secondary {
-    background-color: transparent;
-    border: 2px solid var(--neon-green);
-    color: var(--neon-green);
-}
-
-.btn.secondary:hover {
-    background-color: rgba(0, 255, 157, 0.1);
-}
-
-/* Basit Animasyon */
-@keyframes flash {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-/* MOBİL UYUMLULUK */
-@media (max-width: 800px) {
-    .game-area {
-        gap: 30px;
-    }
-    :root {
-        --cell-size: 30px; /* Mobilde kareleri küçült */
-    }
-}
+@keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
