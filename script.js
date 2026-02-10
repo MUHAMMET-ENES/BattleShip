@@ -97,4 +97,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // İlk açılışta senin gemilerini yerleştir
     shipArray.forEach(ship => generateUser(ship));
+    // --- SAVAŞ BAŞLASIN ---
+    let isGameOver = false;
+    let currentPlayer = 'user';
+    const startButton = document.querySelector('#start-btn');
+    const infoDisplay = document.querySelector('#status-text');
+    
+    // Toplam vurulması gereken parça sayısı (5+4+3+3+2 = 17)
+    let cpuDestroyed = 0;
+    let userDestroyed = 0;
+
+    // Oyunu Başlat Butonu
+    startButton.addEventListener('click', () => {
+        if(startButton.innerText === "Savaşı Başlat") {
+            // Bilgisayarın gridine tıklama olaylarını ekle
+            computerSquares.forEach(square => square.addEventListener('click', function(e) {
+                if(!isGameOver) revealSquare(square);
+            }));
+            infoDisplay.innerHTML = "Hedef Seç: Düşman sularına tıkla!";
+            startButton.innerText = "Savaş Sürüyor...";
+            startButton.disabled = true; // Tekrar basılamasın
+        }
+    });
+
+    // --- SENİN HAMLEN ---
+    function revealSquare(square) {
+        // Zaten tıklanmışsa işlem yapma
+        if (square.classList.contains('hit') || square.classList.contains('miss')) return;
+
+        if (square.classList.contains('taken')) {
+            // İSABET!
+            square.classList.add('hit');
+            infoDisplay.innerHTML = "VURDUN! Düşman gemisi hasar aldı.";
+            cpuDestroyed++;
+            checkForWins();
+        } else {
+            // ISKA!
+            square.classList.add('miss');
+            infoDisplay.innerHTML = "ISKA! Sıra bilgisayarda...";
+        }
+        
+        // Sırayı bilgisayara ver
+        currentPlayer = 'computer';
+        if(!isGameOver) setTimeout(computerGo, 1000); // 1 saniye bekle (düşünme efekti)
+    }
+
+    // --- BİLGİSAYARIN HAMLESİ (Yapay Zeka) ---
+    function computerGo() {
+        if(isGameOver) return;
+
+        infoDisplay.innerHTML = "Bilgisayar nişan alıyor...";
+        
+        // Basit Zeka: Rastgele geçerli bir kare bulana kadar dene
+        let random = Math.floor(Math.random() * userSquares.length);
+        
+        // Eğer bu kareye daha önce ateş edildiyse, yeni sayı üret
+        while (userSquares[random].classList.contains('hit') || userSquares[random].classList.contains('miss')) {
+            random = Math.floor(Math.random() * userSquares.length);
+        }
+
+        const targetSquare = userSquares[random];
+
+        if (targetSquare.classList.contains('taken')) {
+            targetSquare.classList.add('hit');
+            infoDisplay.innerHTML = "DİKKAT! Gemin vuruldu!";
+            userDestroyed++;
+            checkForWins();
+        } else {
+            targetSquare.classList.add('miss');
+            infoDisplay.innerHTML = "Bilgisayar ıskaladı. Sıra sende.";
+        }
+        
+        currentPlayer = 'user';
+    }
+
+    // --- KAZANMA KONTROLÜ ---
+    function checkForWins() {
+        if (cpuDestroyed === 17) {
+            infoDisplay.innerHTML = "TEBRİKLER! TÜM DÜŞMAN FİLOSUNU YOK ETTİNİZ! 🏆";
+            infoDisplay.style.color = "#00ff9d"; // Neon Yeşil
+            isGameOver = true;
+        }
+        if (userDestroyed === 17) {
+            infoDisplay.innerHTML = "KAYBETTİNİZ... Filonuz yok edildi. 💀";
+            infoDisplay.style.color = "#ff2a6d"; // Neon Kırmızı
+            isGameOver = true;
+        }
+    }
 });
