@@ -1,46 +1,44 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Battleship</title>
+    <title>Battleship Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="main-menu">
-        <h1>AMİRAL BATTI</h1>
-        <p style="color: #7f8c8d; margin-bottom: 30px;">Strateji ve Mantık Oyunu</p>
-        <button id="start-btn" class="btn-start">OYUNA BAŞLA</button>
+        <h1>BATTLESHIP</h1>
+        <p style="color: #7f8c8d; margin-bottom: 30px;">Strategy & Logic Game</p>
+        <button id="start-btn" class="btn-start">START GAME</button>
     </div>
 
     <div class="game-container">
         
-        <h2 id="info-text" style="color: #2c3e50; margin-bottom: 10px;">Filoları Konuşlandır</h2>
+        <h2 id="info-text" style="color: #2c3e50; margin-bottom: 10px;">Deploy Your Fleet</h2>
         <p id="turn-display" style="color: #7f8c8d; height: 20px;"></p>
 
         <div class="boards-row">
             <div class="board-wrapper">
-                <h3>SİZİN SULARINIZ</h3>
-                <div id="user-grid" class="grid">
-                    </div>
+                <h3>YOUR WATERS</h3>
+                <div id="user-grid" class="grid"></div>
             </div>
 
             <div class="board-wrapper">
-                <h3>DÜŞMAN SULARI</h3>
-                <div id="computer-grid" class="grid">
-                    </div>
+                <h3>ENEMY WATERS</h3>
+                <div id="computer-grid" class="grid"></div>
             </div>
         </div>
 
         <div class="setup-panel" id="setup-panel">
             <p style="color: #7f8c8d; font-size: 0.9rem;">
-                Gemileri sürükleyip alanınıza bırakın. Yön değiştirmek için <b>'R'</b> tuşuna veya butona basın.
+                Drag and drop ships onto your board. Press <b>'R'</b> or use the button to rotate.
             </p>
             
             <div class="controls">
-                <button id="rotate-btn" class="btn btn-rotate">Döndür (Yatay)</button>
+                <button id="rotate-btn" class="btn btn-rotate">Rotate (Horizontal)</button>
             </div>
 
             <div class="ship-dock">
@@ -51,7 +49,7 @@
                 <div class="ship-preview" draggable="true" data-length="5" style="width: 175px;">5</div>
             </div>
 
-            <button id="start-war-btn" class="btn btn-play">SAVAŞI BAŞLAT</button>
+            <button id="start-war-btn" class="btn btn-play">START WAR</button>
         </div>
 
     </div>
