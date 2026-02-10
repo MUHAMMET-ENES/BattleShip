@@ -1,19 +1,19 @@
 /* --- style.css --- */
 :root {
-    --bg-color: #f0f4f8;        /* Çok açık gri-mavi (Göz yormayan arka plan) */
-    --primary: #2c3e50;         /* Koyu lacivert (Ana metinler) */
-    --accent: #3498db;          /* Pastel Mavi (Butonlar ve Vurgular) */
-    --accent-hover: #2980b9;    /* Buton üzerine gelince */
-    --ship-color: #95a5a6;      /* Gri (Gemiler) */
-    --hit-color: #e74c3c;       /* Pastel Kırmızı (Vuruldu) */
-    --miss-color: #ecf0f1;      /* Çok açık gri (Iska) */
-    --board-bg: #ffffff;        /* Beyaz (Oyun Tahtası zemini) */
+    --bg-color: #f0f4f8;        /* Light Grey-Blue Background */
+    --primary: #2c3e50;         /* Dark Blue Text */
+    --accent: #3498db;          /* Blue Buttons */
+    --accent-hover: #2980b9;    /* Button Hover */
+    --ship-color: #95a5a6;      /* Grey Ships */
+    --hit-color: #e74c3c;       /* Red (Hit) */
+    --miss-color: #ecf0f1;      /* White-Grey (Miss) */
+    --board-bg: #ffffff;        /* White Board Background */
 }
 
 * {
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    user-select: none; /* Yazıların seçilmesini engeller (Sürüklerken bozulmasın diye) */
+    user-select: none; 
 }
 
 body {
@@ -26,8 +26,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- ANA MENÜ KATMANI --- */
-/* Oyunun başında tüm ekranı kaplayan alan */
+/* --- MAIN MENU --- */
 #main-menu {
     position: fixed;
     top: 0; left: 0;
@@ -37,7 +36,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 100; /* En üstte durmasını sağlar */
+    z-index: 100;
 }
 
 #main-menu h1 {
@@ -64,9 +63,9 @@ body {
     background-color: var(--accent-hover);
 }
 
-/* --- OYUN ALANI (Başlangıçta Gizli) --- */
+/* --- GAME CONTAINER (Hidden initially) --- */
 .game-container {
-    display: none; /* JS ile görünür yapılacak */
+    display: none; /* Controlled by JS */
     flex-direction: column;
     align-items: center;
     width: 100%;
@@ -92,13 +91,13 @@ body {
     font-weight: 600;
 }
 
-/* 10x10 GRID YAPISI */
+/* 10x10 GRID */
 .grid {
     display: grid;
     grid-template-columns: repeat(10, 35px);
     grid-template-rows: repeat(10, 35px);
     gap: 2px;
-    background-color: #bdc3c7; /* Çizgi rengi */
+    background-color: #bdc3c7;
     padding: 2px;
     border-radius: 5px;
 }
@@ -111,15 +110,15 @@ body {
 }
 
 .cell:hover {
-    background-color: #dceefc; /* Hover efekti */
+    background-color: #dceefc;
 }
 
-/* DURUMLAR */
-.cell.taken { background-color: var(--ship-color); } /* Kendi gemin */
+/* STATES */
+.cell.taken { background-color: var(--ship-color); }
 .cell.hit { background-color: var(--hit-color) !important; }
 .cell.miss { background-color: var(--miss-color) !important; }
 
-/* --- GEMİ YERLEŞTİRME PANELİ --- */
+/* --- SETUP PANEL --- */
 .setup-panel {
     background: white;
     padding: 20px;
@@ -145,10 +144,9 @@ body {
     width: 100%;
 }
 
-/* SÜRÜKLENEBİLİR GEMİLER */
 .ship-preview {
     background-color: var(--ship-color);
-    height: 35px; /* Grid karesiyle aynı boyda */
+    height: 35px;
     border-radius: 3px;
     cursor: grab;
     display: flex;
@@ -160,11 +158,9 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.ship-preview:active {
-    cursor: grabbing;
-}
+.ship-preview:active { cursor: grabbing; }
 
-/* BUTONLAR */
+/* CONTROLS */
 .controls { display: flex; gap: 15px; }
 
 .btn {
@@ -183,7 +179,7 @@ body {
 }
 
 .btn-play {
-    background-color: #27ae60; /* Yeşil */
+    background-color: #27ae60;
     color: white;
-    display: none; /* Gemiler bitince görünür */
+    display: none;
 }
