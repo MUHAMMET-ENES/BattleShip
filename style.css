@@ -1,347 +1,244 @@
-/* --- style.css --- */
+/* style.css */
+
+/* --- 1. Variables & Themes --- */
 :root {
-    /* Renk Paleti (Pastel & Profesyonel) */
-    --bg-color: #f0f4f8;        /* Açık Gri-Mavi Arka Plan */
-    --primary: #2c3e50;         /* Koyu Lacivert (Yazılar) */
-    --accent: #3498db;          /* Ana Buton Mavisi */
-    --accent-hover: #2980b9;    /* Buton Hover */
-    
-    --ship-color: #7f8c8d;      /* Gemi Rengi (Bizimkiler) */
-    --ship-preview: #95a5a6;    /* Sürüklenen Gemi */
-    
-    --hit-color: #e74c3c;       /* İsabet (Kırmızı) */
-    --miss-color: #bdc3c7;      /* Iska (Gri Nokta) */
-    --sunk-color: #8e44ad;      /* Gemi Battı (Mor/Koyu Renk) */
-    
-    --board-bg: #ffffff;        /* Izgara Zemini */
-    --grid-line: #ecf0f1;       /* Izgara Çizgileri */
-    
-    --glass: rgba(255, 255, 255, 0.95); /* Menü Arkası */
+  /* Dark Mode (Default) */
+  --bg-color: #0b1a26;
+  --panel-bg: rgba(20, 40, 60, 0.95);
+  --text-primary: #ecf0f1;
+  --text-secondary: #95a5a6;
+  --accent-color: #3498db; /* Radar Blue */
+  --accent-hover: #2980b9;
+  --danger-color: #e74c3c; /* Hit/Quit */
+  --success-color: #27ae60; /* Win/Start */
+  --grid-line: rgba(52, 152, 219, 0.3);
+  --cell-water: rgba(52, 152, 219, 0.1);
+  --cell-hover: rgba(52, 152, 219, 0.3);
+  
+  /* Ship Colors */
+  --ship-body: #95a5a6;
+  --ship-preview: rgba(149, 165, 166, 0.5);
+  
+  /* Dimensions */
+  --cell-size: 35px;
+  --border-radius: 8px;
 }
 
+/* Light Mode Override */
+body.light-mode {
+  --bg-color: #ecf0f1;
+  --panel-bg: #ffffff;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --accent-color: #2980b9;
+  --grid-line: rgba(44, 62, 80, 0.2);
+  --cell-water: rgba(44, 62, 80, 0.05);
+  --cell-hover: rgba(44, 62, 80, 0.15);
+  --ship-body: #34495e;
+}
+
+/* --- 2. Global Reset --- */
 * {
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    user-select: none; /* Sürükleme sırasında yazı seçimini engeller */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none; /* Prevent text selection during play */
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--primary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    min-height: 100vh;
-    overflow-x: hidden;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* --- 1. ANA MENÜ VE AYARLAR --- */
-#main-menu {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: var(--bg-color);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 200;
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  outline: none;
 }
 
+/* --- 3. UI Components (Buttons) --- */
+.btn {
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.btn-primary { background: var(--accent-color); color: white; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+
+.btn-danger { background: var(--danger-color); color: white; }
+.btn-danger:hover { filter: brightness(1.1); }
+
+.btn-icon {
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  padding: 8px;
+  box-shadow: none;
+}
+.btn-icon:hover { color: var(--accent-color); }
+
+/* --- 4. Screens & Layouts --- */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-color);
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Main Menu */
 #main-menu h1 {
-    font-size: 4.5rem;
-    color: var(--primary);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 5px;
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+  font-size: 3.5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 15px var(--accent-color);
+  letter-spacing: 4px;
 }
 
 .menu-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 300px;
 }
 
-.btn-menu {
-    padding: 15px 0;
-    font-size: 1.2rem;
-    background-color: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    font-weight: 600;
+/* Game Screen Layout */
+#game-screen {
+  justify-content: flex-start;
+  padding-top: 20px;
 }
 
-.btn-menu:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-    background-color: var(--accent-hover);
-}
-
-/* Ayarlar Paneli (Menü İçinde) */
-.settings-box {
-    margin-top: 40px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    width: 300px;
-}
-
-.setting-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-}
-
-/* Slider Tasarımı */
-input[type=range] {
-    width: 120px;
-    accent-color: var(--accent);
-}
-
-/* --- 2. 1 VS 1 ARA EKRANI (TURN OVERLAY) --- */
-/* Cihazı arkadaşına verirken çıkan perde */
-#turn-overlay {
-    display: none; /* JS ile açılacak */
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: var(--primary);
-    color: white;
-    z-index: 300; /* En üstte */
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-#turn-overlay h2 { font-size: 3rem; margin-bottom: 20px; }
-#turn-overlay p { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.8; }
-
-.btn-ready {
-    padding: 20px 60px;
-    font-size: 1.5rem;
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    animation: pulse 2s infinite;
-}
-
-/* --- 3. OYUN ALANI --- */
-.game-container {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 1200px;
-    padding: 20px;
-}
-
-/* Bilgi ve Log Alanı */
 .game-header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 900px;
-    margin-bottom: 20px;
-    align-items: center;
+  width: 90%;
+  max-width: 1000px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background: var(--panel-bg);
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
 }
 
-.status-box {
-    text-align: center;
+.game-info {
+  display: flex;
+  gap: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
-.log-box {
-    background: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border-left: 5px solid var(--accent);
-    font-size: 0.9rem;
-    min-width: 300px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+/* --- 5. The Battle Grid --- */
+.battlefield {
+  display: flex;
+  gap: 4rem;
+  padding: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-/* Tahtalar */
-.boards-row {
-    display: flex;
-    justify-content: center;
-    gap: 60px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.board-wrapper {
-    position: relative;
-    text-align: center;
+.board-container h3 {
+  color: var(--text-secondary);
 }
 
-.board-wrapper h3 {
-    margin-bottom: 15px;
-    color: var(--primary);
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-/* IZGARA YAPISI (GRID) */
 .grid {
-    display: grid;
-    grid-template-columns: repeat(10, 40px);
-    grid-template-rows: repeat(10, 40px);
-    gap: 1px;
-    background-color: var(--grid-line);
-    border: 2px solid var(--primary);
-    border-radius: 4px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  display: grid;
+  grid-template-columns: repeat(10, var(--cell-size));
+  grid-template-rows: repeat(10, var(--cell-size));
+  gap: 1px;
+  background-color: var(--grid-line);
+  border: 2px solid var(--grid-line);
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 .cell {
-    width: 40px;
-    height: 40px;
-    background-color: var(--board-bg);
-    cursor: crosshair; /* Hedef işareti */
-    transition: background-color 0.2s;
+  background-color: var(--cell-water);
+  position: relative;
+  transition: background 0.1s;
 }
 
-.cell:hover {
-    background-color: #eef2f7;
+/* Interactive States */
+.cell.interactive:hover { background-color: var(--cell-hover); cursor: crosshair; }
+
+.cell.ship { background-color: var(--ship-body); }
+.cell.preview { background-color: var(--ship-preview); }
+.cell.invalid { background-color: rgba(231, 76, 60, 0.5); cursor: not-allowed; }
+
+/* Hit/Miss Markers */
+.cell.hit { background-color: var(--danger-color) !important; animation: pop 0.3s ease; }
+.cell.miss { background-color: var(--text-secondary) !important; animation: fade 0.3s ease; }
+.cell.sunk { background-color: #444; border: 2px solid var(--danger-color); }
+
+.cell.hit::after { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.2rem; }
+.cell.miss::after { content: '•'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.5); font-size: 2rem; }
+
+/* --- 6. Modals (Settings, Pause, GameOver) --- */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
 }
 
-/* --- HÜCRE DURUMLARI --- */
-
-/* 1. Yerleştirilmiş Gemi (Sadece Bizim Izgarada Görünür) */
-.grid.friendly .cell.taken {
-    background-color: var(--ship-color);
-    border: 1px solid rgba(255,255,255,0.2);
+.modal-content {
+  background: var(--panel-bg);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  width: 400px;
+  text-align: center;
+  border: 1px solid var(--grid-line);
 }
 
-/* 2. Düşman Izgarası (Fog of War) */
-/* Düşman sahasında 'taken' olsa bile normal hücre gibi görünmeli */
-.grid.enemy .cell.taken {
-    background-color: var(--board-bg); 
+.modal-content h2 { margin-bottom: 1.5rem; color: var(--accent-color); }
+
+.settings-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* 3. Vuruldu (Hit) */
-.cell.hit {
-    background-color: var(--hit-color) !important;
-    position: relative;
-    animation: flash 0.4s;
-}
-/* Hit üzerine X işareti */
-.cell.hit::after {
-    content: '✖';
-    color: white;
-    font-size: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
+/* --- 7. Animations --- */
+@keyframes pop { 0% { transform: scale(0.5); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes fade { 0% { opacity: 0; } 100% { opacity: 1; } }
 
-/* 4. Iska (Miss) */
-.cell.miss {
-    background-color: var(--board-bg) !important;
-    position: relative;
+/* Mobile Response */
+@media (max-width: 800px) {
+  :root { --cell-size: 28px; }
+  .battlefield { gap: 2rem; }
+  #main-menu h1 { font-size: 2.5rem; }
 }
-/* Miss üzerine nokta */
-.cell.miss::after {
-    content: '';
-    width: 15px; height: 15px;
-    background-color: var(--miss-color);
-    border-radius: 50%;
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* 5. Gemi Battı (Sunk) */
-.cell.sunk {
-    background-color: var(--sunk-color) !important;
-    border-color: #fff;
-    animation: shake 0.5s;
-}
-
-/* --- YERLEŞTİRME PANELİ (SETUP) --- */
-.setup-panel {
-    background: white;
-    padding: 20px 40px;
-    border-radius: 15px;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-    position: fixed;
-    bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 100;
-}
-
-.ship-dock {
-    display: flex;
-    gap: 20px;
-    margin: 15px 0;
-    padding: 10px;
-    background-color: #f7f9fa;
-    border-radius: 10px;
-}
-
-.ship-preview {
-    background-color: var(--ship-preview);
-    height: 40px;
-    border-radius: 4px;
-    cursor: grab;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-weight: bold;
-    font-size: 14px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-}
-
-.controls-hint {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    margin-bottom: 10px;
-}
-.key-badge {
-    background: #bdc3c7;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 0.8rem;
-}
-
-/* --- ANİMASYONLAR --- */
-@keyframes flash {
-    0% { transform: scale(1); background-color: white; }
-    50% { transform: scale(1.2); background-color: var(--hit-color); }
-    100% { transform: scale(1); }
-}
-
-@keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
-    70% { box-shadow: 0 0 0 20px rgba(39, 174, 96, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
-}
-
-/* Gizleme Class'ı */
-.hidden { display: none !important; }
