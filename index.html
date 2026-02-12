@@ -11,9 +11,8 @@
 
     <audio id="sfx-fire" src="assets/sounds/fire.mp3"></audio>
     <audio id="sfx-hit" src="assets/sounds/hit.mp3"></audio>
-    <audio id="sfx-miss" src="assets/sounds/miss.mp3"></audio>
     <audio id="sfx-win" src="assets/sounds/win.mp3"></audio>
-    <audio id="sfx-alert" src="assets/sounds/alert.mp3"></audio>
+    <audio id="sfx-lose" src="assets/sounds/miss.mp3"></audio> <audio id="sfx-menu" src="assets/sounds/menu.mp3"></audio>
 
     <div id="main-menu" class="screen">
         
@@ -57,7 +56,9 @@
     <div id="deployment-screen" class="screen hidden">
         <header class="game-header">
             <h3 id="deploy-player-title">Admiral 1 Setup</h3>
-            <button class="btn btn-secondary btn-sm" onclick="rotateShip()" data-tr="DÖNDÜR (R)" data-en="ROTATE (R)">ROTATE (R)</button>
+            <div class="header-controls">
+                <span class="hint-text" data-tr="Döndürmek için CAPS LOCK kullanın" data-en="Use CAPS LOCK to Rotate">Use CAPS LOCK to Rotate</span>
+            </div>
         </header>
 
         <div class="battlefield">
@@ -66,9 +67,8 @@
             </div>
 
             <div class="dockyard">
-                <p data-tr="Gemileri sürükle veya seç:" data-en="Drag or select ships:">Drag or select ships:</p>
-                <div id="ship-dock" class="ship-list">
-                    </div>
+                <p data-tr="Gemileri seç:" data-en="Select ships:">Select ships:</p>
+                <div id="ship-dock" class="ship-list"></div>
                 <div id="deploy-status" class="status-text"></div>
             </div>
         </div>
@@ -90,21 +90,18 @@
         <header class="game-header">
             <div class="header-left">
                 <button class="btn-icon" onclick="togglePause()"><i class="fas fa-pause"></i></button>
+                <button class="btn-icon" onclick="quitGame()"><i class="fas fa-sign-out-alt"></i></button>
                 <div class="score-board">
                     <div class="hud-item">
                         <span class="hud-label" data-tr="SKOR" data-en="SCORE">SCORE</span>
                         <span id="score-display">0</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label" data-tr="HAMLE" data-en="MOVES">MOVES</span>
-                        <span id="move-display">0</span>
                     </div>
                 </div>
             </div>
             
             <div class="header-center">
                 <span id="active-player-label" class="turn-badge">Player 1</span>
-                <span id="turn-status" data-tr="ATIŞ BEKLENİYOR" data-en="AWAITING ORDERS">AWAITING ORDERS</span>
+                <span id="turn-status" data-tr="HEDEF SEÇİLİYOR" data-en="AWAITING ORDERS">AWAITING ORDERS</span>
             </div>
 
             <div class="header-right">
@@ -116,15 +113,17 @@
         </header>
 
         <div class="battlefield">
-            <div class="board-container">
-                <h3 id="enemy-board-title" class="board-label" data-tr="RADAR (Düşman)" data-en="RADAR (Enemy)">RADAR (Enemy)</h3>
-                <div id="enemy-grid" class="grid interactive-grid"></div>
+            
+            <div class="board-container" id="radar-container">
+                <h3 class="board-label" data-tr="RADAR (Düşman)" data-en="RADAR (Target)">RADAR (Target)</h3>
+                <div id="radar-grid" class="grid interactive-grid"></div>
             </div>
 
-            <div class="board-container">
-                <h3 id="friendly-board-title" class="board-label" data-tr="FİLONUZ" data-en="YOUR FLEET">YOUR FLEET</h3>
-                <div id="player-grid" class="grid status-grid"></div>
+            <div class="board-container" id="fleet-container">
+                <h3 class="board-label" data-tr="FİLONUZ" data-en="YOUR FLEET">YOUR FLEET</h3>
+                <div id="fleet-grid" class="grid status-grid"></div>
             </div>
+
         </div>
     </div>
 
@@ -142,27 +141,18 @@
                 <button class="btn btn-sm btn-secondary" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
             </div>
 
-            <div class="settings-group">
-                <span data-tr="Ses Efektleri" data-en="Sound Effects">Sound Effects</span>
-                <button class="btn btn-sm btn-secondary" onclick="toggleSound()"><i class="fas fa-volume-up"></i></button>
-            </div>
-
             <button class="btn btn-danger" onclick="closeSettings()" data-tr="KAPAT" data-en="CLOSE">CLOSE</button>
         </div>
     </div>
 
     <div id="game-over-modal" class="modal hidden">
         <div class="modal-content">
-            <i class="fas fa-medal fa-3x" style="color: gold; margin-bottom: 15px;"></i>
+            <i class="fas fa-medal fa-3x" id="end-icon" style="color: gold; margin-bottom: 15px;"></i>
             <h2 id="winner-title">VICTORY!</h2>
             
             <p class="result-detail">
                 <span data-tr="Kazanan:" data-en="Winner:">Winner:</span> 
                 <strong id="winner-name">Player 1</strong>
-            </p>
-            <p class="result-detail">
-                <span data-tr="Hamle Sayısı:" data-en="Total Moves:">Total Moves:</span> 
-                <strong id="winner-moves">24</strong>
             </p>
             <p class="result-detail highlight">
                 <span data-tr="Puan:" data-en="Score:">Score:</span> 
