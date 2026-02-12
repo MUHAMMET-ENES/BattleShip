@@ -1,98 +1,81 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battleship Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Battleship Elite</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <div id="audio-assets">
-        <audio id="bg-music" loop> <source src="assets/music.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-click"> <source src="assets/click.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-fire"> <source src="assets/fire.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-hit"> <source src="assets/hit.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-miss"> <source src="assets/miss.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-sunk"> <source src="assets/sunk.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-win"> <source src="assets/win.mp3" type="audio/mpeg"> </audio>
-        <audio id="sfx-lose"> <source src="assets/lose.mp3" type="audio/mpeg"> </audio>
-    </div>
+    <audio id="sfx-fire" src="assets/sounds/fire.mp3"></audio>
+    <audio id="sfx-hit" src="assets/sounds/hit.mp3"></audio>
+    <audio id="sfx-miss" src="assets/sounds/miss.mp3"></audio>
+    <audio id="sfx-win" src="assets/sounds/win.mp3"></audio>
 
-    <div id="main-menu">
-        <h1>BATTLESHIP</h1>
-        <p style="color: #7f8c8d; letter-spacing: 2px; margin-bottom: 40px;">TAKTIK SAVAŞ SİMÜLASYONU</p>
-        
+    <div id="main-menu" class="screen">
+        <h1 data-tr="AMİRAL BATTI" data-en="BATTLESHIP">BATTLESHIP</h1>
         <div class="menu-buttons">
-            <button id="btn-pvc" class="btn-menu">TEK OYUNCU (VS CPU)</button>
-            <button id="btn-pvp" class="btn-menu">ÇOK OYUNCU (1 VS 1)</button>
+            <button class="btn btn-primary" onclick="startGame('computer')" data-tr="BİLGİSAYARA KARŞI" data-en="VS COMPUTER">VS COMPUTER</button>
+            <button class="btn btn-primary" onclick="startGame('player')" data-tr="ARKADAŞINA KARŞI" data-en="VS PLAYER">VS PLAYER</button>
+            <button class="btn btn-secondary" onclick="openSettings()" data-tr="AYARLAR" data-en="SETTINGS">SETTINGS</button>
         </div>
+    </div>
 
-        <div class="settings-box">
-            <div class="setting-row">
-                <span>Müzik Ses</span>
-                <input type="range" id="vol-music" min="0" max="1" step="0.1" value="0.5">
+    <div id="game-screen" class="screen hidden">
+        <header class="game-header">
+            <div class="game-controls">
+                <button class="btn-icon" onclick="togglePause()"><i class="fas fa-pause"></i></button>
+                <button class="btn-icon" onclick="openSettings()"><i class="fas fa-cog"></i></button>
             </div>
-            <div class="setting-row">
-                <span>Efekt Ses</span>
-                <input type="range" id="vol-sfx" min="0" max="1" step="0.1" value="0.8">
+            
+            <div class="game-info">
+                <span id="turn-indicator" data-tr="Sıra Sizde" data-en="Your Turn">Your Turn</span>
+            </div>
+
+            <div class="game-actions">
+                <button class="btn btn-danger btn-sm" onclick="quitGame()" data-tr="ÇIKIŞ" data-en="QUIT">QUIT</button>
+            </div>
+        </header>
+
+        <div class="battlefield">
+            <div class="board-container">
+                <h3 data-tr="Filonuz" data-en="Your Fleet">Your Fleet</h3>
+                <div id="player-grid" class="grid"></div>
+            </div>
+
+            <div class="board-container">
+                <h3 id="enemy-title" data-tr="Düşman Suları" data-en="Enemy Waters">Enemy Waters</h3>
+                <div id="enemy-grid" class="grid"></div>
             </div>
         </div>
     </div>
 
-    <div id="turn-overlay">
-        <h2 id="overlay-title">OYUNCU 2</h2>
-        <p>Cihazı rakibe ver ve hazır olunca tıkla.</p>
-        <button id="btn-ready" class="btn-ready">HAZIRIM</button>
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 data-tr="AYARLAR" data-en="SETTINGS">SETTINGS</h2>
+            
+            <div class="settings-group">
+                <span data-tr="Dil" data-en="Language">Language</span>
+                <button class="btn btn-primary" onclick="toggleLanguage()">TR / EN</button>
+            </div>
+
+            <div class="settings-group">
+                <span data-tr="Karanlık Mod" data-en="Dark Mode">Dark Mode</span>
+                <button class="btn btn-primary" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+            </div>
+
+            <button class="btn btn-danger" onclick="closeSettings()" data-tr="KAPAT" data-en="CLOSE">CLOSE</button>
+        </div>
     </div>
 
-    <div class="game-container">
-        
-        <div class="game-header">
-            <div class="status-box">
-                <h2 id="info-text" style="color: #2c3e50; margin: 0;">FİLALARI KONUŞLANDIR</h2>
-                <p id="turn-display" style="color: #e74c3c; font-weight: bold; height: 20px; margin-top: 5px;"></p>
-            </div>
-            
-            <div class="log-box" id="game-log">
-                Sistem Hazır. Bekleniyor...
-            </div>
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="winner-text">PLAYER WINS!</h2>
+            <button class="btn btn-primary" onclick="restartGame()" data-tr="TEKRAR OYNA" data-en="PLAY AGAIN">PLAY AGAIN</button>
+            <button class="btn btn-danger" onclick="quitGame()" data-tr="ANA MENÜ" data-en="MAIN MENU">MAIN MENU</button>
         </div>
-
-        <div class="boards-row">
-            <div class="board-wrapper">
-                <h3 id="p1-title">DOST SULAR</h3>
-                <div id="grid-friendly" class="grid friendly"></div>
-            </div>
-
-            <div class="board-wrapper">
-                <h3 id="p2-title">DÜŞMAN RADARI</h3>
-                <div id="grid-enemy" class="grid enemy"></div>
-            </div>
-        </div>
-
-        <div class="setup-panel" id="setup-panel">
-            <div class="controls-hint">
-                <span class="key-badge">SÜRÜKLE</span> Gemileri alana bırak 
-                &nbsp;|&nbsp; 
-                <span class="key-badge">CAPS LOCK</span> Yön Değiştir
-            </div>
-
-            <div class="ship-dock">
-                <div class="ship-preview" draggable="true" data-ship="destroyer" data-length="2" style="width: 80px;">2</div>
-                <div class="ship-preview" draggable="true" data-ship="submarine" data-length="3" style="width: 120px;">3</div>
-                <div class="ship-preview" draggable="true" data-ship="cruiser" data-length="3" style="width: 120px;">3</div>
-                <div class="ship-preview" draggable="true" data-ship="battleship" data-length="4" style="width: 160px;">4</div>
-                <div class="ship-preview" draggable="true" data-ship="carrier" data-length="5" style="width: 200px;">5</div>
-            </div>
-            
-            <div style="margin-top: 10px; display: flex; gap: 10px;">
-                <button id="btn-rotate" class="btn btn-rotate">DÖNDÜR</button>
-                <button id="btn-start-war" class="btn btn-play hidden">SAVAŞI BAŞLAT</button>
-            </div>
-        </div>
-
     </div>
 
     <script src="script.js"></script>
