@@ -1,5 +1,5 @@
 /* =========================================
-   BATTLESHIP ELITE: TACTICAL ENGINE
+   BATTLESHIP ELITE: OPTIMIZED ENGINE
    ========================================= */
 
 // --- 1. CONFIGURATION & CONSTANTS ---
@@ -23,7 +23,7 @@ const CONFIG = {
 const TEXTS = {
     en: {
         placeShip: "Place your",
-        rotate: "Rotate (R)",
+        rotate: "Rotate (Caps Lock)",
         invalid: "Invalid Position!",
         p1Default: "Admiral 1",
         p2Default: "Admiral 2",
@@ -37,7 +37,7 @@ const TEXTS = {
     },
     tr: {
         placeShip: "Yerleştir:",
-        rotate: "Döndür (R)",
+        rotate: "Döndür (Caps Lock)",
         invalid: "Geçersiz Konum!",
         p1Default: "Amiral 1",
         p2Default: "Amiral 2",
@@ -56,18 +56,18 @@ const state = {
     lang: localStorage.getItem('lang') || 'en',
     theme: localStorage.getItem('theme') || 'dark',
     highScore: parseInt(localStorage.getItem('highScore')) || 0,
-    mode: null, // 'computer' or 'player'
-    phase: 'menu', // menu, profile, deployment, transition, battle, gameover
+    mode: null, 
+    phase: 'menu', 
     
     // Deployment Logic
-    deployingPlayer: 1, // 1 or 2
+    deployingPlayer: 1, 
     selectedShipIndex: 0,
     isHorizontal: true,
     p1ShipsBuffer: [],
     p2ShipsBuffer: [],
 
     // Battle Logic
-    turn: 1, // 1 or 2
+    turn: 1, 
     p1: { name: "", board: [], ships: [], shots: [], score: 0, moves: 0 },
     p2: { name: "", board: [], ships: [], shots: [], score: 0, moves: 0 }
 };
@@ -95,7 +95,9 @@ const DOM = {
         hit: document.getElementById('sfx-hit'),
         miss: document.getElementById('sfx-miss'),
         win: document.getElementById('sfx-win'),
-        alert: document.getElementById('sfx-alert')
+        alert: document.getElementById('sfx-alert'),
+        // NOTE: Add <audio id="sfx-menu" src="assets/sounds/menu.mp3"></audio> to your HTML
+        menu: document.getElementById('sfx-menu') 
     }
 };
 
@@ -104,17 +106,28 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     updateLanguage(state.lang);
     DOM.hud.highScore.textContent = state.highScore;
+    attachButtonSounds(); // Attach sound to all buttons
     
-    // Keyboard Listener for Rotation
+    // Optimized Key Listener for Rotation
     document.addEventListener('keydown', (e) => {
-        if (state.phase === 'deployment' && (e.key === 'r' || e.key === 'R')) {
-            rotateShip();
+        if (state.phase === 'deployment') {
+            // Using CapsLock as requested
+            if (e.code === 'CapsLock' || e.key === 'CapsLock') {
+                rotateShip();
+            }
         }
     });
 });
 
 function initTheme() {
     if (state.theme === 'light') document.body.classList.add('light-mode');
+}
+
+function attachButtonSounds() {
+    // Finds all buttons and attaches the click sound
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => playAudio('menu'));
+    });
 }
 
 // --- 5. NAVIGATION & FLOW ---
@@ -138,7 +151,6 @@ function backToMenu() {
 
 // Start Deployment Phase
 function startDeployment() {
-    // 1. Capture Names
     const p1Name = document.getElementById('p1-name-input').value.trim() || TEXTS[state.lang].p1Default;
     let p2Name = TEXTS[state.lang].p2Default;
     
@@ -148,7 +160,6 @@ function startDeployment() {
         p2Name = document.getElementById('p2-name-input').value.trim() || TEXTS[state.lang].p2Default;
     }
 
-    // 2. Reset State
     state.p1 = createPlayer(p1Name);
     state.p2 = createPlayer(p2Name);
     state.deployingPlayer = 1;
@@ -156,7 +167,6 @@ function startDeployment() {
     state.p2ShipsBuffer = [];
     state.selectedShipIndex = 0;
     
-    // 3. UI Setup
     setupDeploymentUI();
     switchScreen('deployment');
 }
@@ -164,7 +174,6 @@ function startDeployment() {
 function createPlayer(name) {
     return { 
         name, 
-        board: Array(CONFIG.boardSize * CONFIG.boardSize).fill(null), // Flat array for grid
         ships: [], 
         shots: [], 
         score: 0, 
@@ -172,7 +181,7 @@ function createPlayer(name) {
     };
 }
 
-// --- 6. DEPLOYMENT LOGIC ---
+// --- 6. DEPLOYMENT LOGIC (Fixed Stability) ---
 
 function setupDeploymentUI() {
     const grid = document.getElementById('deploy-grid');
@@ -181,7 +190,7 @@ function setupDeploymentUI() {
     const btn = document.getElementById('btn-start-battle');
     const status = document.getElementById('deploy-status');
 
-    grid.innerHTML = '';
+    // Reset UI
     dock.innerHTML = '';
     btn.disabled = true;
     btn.classList.add('disabled');
@@ -190,18 +199,25 @@ function setupDeploymentUI() {
     const currentPlayer = state.deployingPlayer === 1 ? state.p1 : state.p2;
     title.textContent = `${TEXTS[state.lang].placeShip} ${currentPlayer.name}`;
 
-    // Create Grid
-    for (let i = 0; i < 100; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.dataset.index = i;
-        
-        // Mouse Events for Ghost Placement
-        cell.addEventListener('mouseenter', () => showGhostShip(i));
-        cell.addEventListener('mouseleave', () => clearGhostShip());
-        cell.addEventListener('click', () => placeShip(i));
-        
-        grid.appendChild(cell);
+    // STABILITY FIX: Only create cells if they don't exist. 
+    // This prevents the container from collapsing and reshaping.
+    if (grid.children.length !== 100) {
+        grid.innerHTML = ''; // Only wipe if size is wrong
+        for (let i = 0; i < 100; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.index = i;
+            
+            // Attach Events once
+            cell.addEventListener('mouseenter', (e) => showGhostShip(parseInt(e.target.dataset.index)));
+            cell.addEventListener('mouseleave', () => clearGhostShip());
+            cell.addEventListener('click', (e) => placeShip(parseInt(e.target.dataset.index)));
+            
+            grid.appendChild(cell);
+        }
+    } else {
+        // Just clean classes if grid already exists
+        Array.from(grid.children).forEach(c => c.className = 'cell');
     }
 
     // Create Dock
@@ -226,11 +242,17 @@ function selectShip(index) {
 
 function rotateShip() {
     state.isHorizontal = !state.isHorizontal;
-    clearGhostShip(); // Refresh preview
+    
+    // INSTANT FEEDBACK: Re-trigger hover effect on current cell if mouse is over grid
+    const hovered = document.querySelector('#deploy-grid .cell:hover');
+    if (hovered) {
+        clearGhostShip();
+        showGhostShip(parseInt(hovered.dataset.index));
+    }
 }
 
 function showGhostShip(startIndex) {
-    if (state.selectedShipIndex >= CONFIG.ships.length) return; // All placed
+    if (state.selectedShipIndex >= CONFIG.ships.length) return;
 
     const ship = CONFIG.ships[state.selectedShipIndex];
     const coords = getShipCoordinates(startIndex, ship.size, state.isHorizontal);
@@ -242,12 +264,14 @@ function showGhostShip(startIndex) {
     coords.forEach(idx => {
         if (idx < 100) {
             const cell = grid.children[idx];
+            // Use 'add' to keep base structure stable
             cell.classList.add(isValid ? 'preview' : 'invalid');
         }
     });
 }
 
 function clearGhostShip() {
+    // Only remove temporary classes, keep 'ship' class if placed
     document.querySelectorAll('#deploy-grid .cell').forEach(c => {
         c.classList.remove('preview', 'invalid');
     });
@@ -269,21 +293,17 @@ function placeShip(startIndex) {
     const newShip = { ...ship, coords, hits: 0 };
     currentBuffer.push(newShip);
     
-    // Draw permanently on deploy grid
     const grid = document.getElementById('deploy-grid');
     coords.forEach(idx => grid.children[idx].classList.add('ship'));
 
-    // Update Dock
     const dockItem = document.querySelector(`.dock-ship[data-id="${state.selectedShipIndex}"]`);
     dockItem.classList.add('placed');
     dockItem.classList.remove('selected');
 
-    // Next Ship
     state.selectedShipIndex++;
     if (state.selectedShipIndex < CONFIG.ships.length) {
         selectShip(state.selectedShipIndex);
     } else {
-        // All ships placed
         document.getElementById('deploy-status').textContent = "FLEET READY!";
         const btn = document.getElementById('btn-start-battle');
         btn.disabled = false;
@@ -292,28 +312,23 @@ function placeShip(startIndex) {
 }
 
 function confirmDeployment() {
-    // Save ships to player object
     if (state.deployingPlayer === 1) {
         state.p1.ships = [...state.p1ShipsBuffer];
         
         if (state.mode === 'computer') {
-            // CPU Auto Deploy
             state.p2.ships = generateRandomShips();
             startGameLoop();
         } else {
-            // PvP: Switch to Player 2
             state.deployingPlayer = 2;
             state.selectedShipIndex = 0;
-            state.p1ShipsBuffer = []; // Clear visual buffer (not the saved p1.ships)
+            state.p1ShipsBuffer = [];
             
-            // Show Transition
             showTransition(state.p2.name, () => {
                 setupDeploymentUI();
                 switchScreen('deployment');
             });
         }
     } else {
-        // P2 Finished (PvP)
         state.p2.ships = [...state.p2ShipsBuffer];
         startGameLoop();
     }
@@ -328,10 +343,10 @@ function getShipCoordinates(start, size, horizontal) {
     for (let i = 0; i < size; i++) {
         let idx;
         if (horizontal) {
-            if (x + i >= 10) return []; // Out of bounds X
+            if (x + i >= 10) return [];
             idx = start + i;
         } else {
-            if (y + i >= 10) return []; // Out of bounds Y
+            if (y + i >= 10) return [];
             idx = start + (i * 10);
         }
         coords.push(idx);
@@ -365,17 +380,36 @@ function generateRandomShips() {
     return ships;
 }
 
-// --- 7. BATTLE LOOP ---
+// --- 7. BATTLE LOOP (Zero-Shake Rendering) ---
 
 function startGameLoop() {
     state.turn = 1;
+    
+    // Initialize Grids ONCE at start of battle to prevent shaking
+    initBattleGrid('enemy-grid', true);
+    initBattleGrid('player-grid', false);
+    
     switchScreen('game');
     
-    // If PvP, show transition first
     if (state.mode === 'player') {
         showTransition(state.p1.name, renderTurn);
     } else {
         renderTurn();
+    }
+}
+
+// Creates the divs once. Future updates only change classes.
+function initBattleGrid(elementId, isInteractive) {
+    const grid = document.getElementById(elementId);
+    grid.innerHTML = '';
+    for (let i = 0; i < 100; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.dataset.index = i;
+        if (isInteractive) {
+            cell.onclick = () => handleFire(parseInt(cell.dataset.index));
+        }
+        grid.appendChild(cell);
     }
 }
 
@@ -384,9 +418,10 @@ function showTransition(nextName, callback) {
     document.getElementById('next-player-name').textContent = nextName;
     tScreen.classList.remove('hidden');
     
-    // Override the button onclick
     const btn = tScreen.querySelector('.btn-primary');
+    // Ensure sound plays on transition button too
     btn.onclick = () => {
+        playAudio('menu');
         tScreen.classList.add('hidden');
         callback();
     };
@@ -396,55 +431,52 @@ function renderTurn() {
     const attacker = state.turn === 1 ? state.p1 : state.p2;
     const defender = state.turn === 1 ? state.p2 : state.p1;
     
-    // Update HUD
     DOM.hud.turn.textContent = attacker.name;
     DOM.hud.score.textContent = attacker.score;
     DOM.hud.moves.textContent = attacker.moves;
     DOM.hud.status.textContent = TEXTS[state.lang].turn;
 
-    // Render Grids
-    drawGrid('enemy-grid', defender.ships, attacker.shots, true); // True = interactive
-    drawGrid('player-grid', attacker.ships, defender.shots, false); // False = static
+    // Update Grids (Visual Only - No DOM Destruction)
+    updateGridVisuals('enemy-grid', defender.ships, attacker.shots, true);
+    updateGridVisuals('player-grid', attacker.ships, defender.shots, false);
 }
 
-function drawGrid(elementId, ships, shots, isInteractive) {
+function updateGridVisuals(elementId, ships, shots, isInteractive) {
     const grid = document.getElementById(elementId);
-    grid.innerHTML = '';
+    
+    // Loop through existing children instead of rebuilding
+    Array.from(grid.children).forEach((cell, i) => {
+        // Reset class to base
+        cell.className = 'cell';
 
-    for (let i = 0; i < 100; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        
         const shotData = shots.find(s => s.index === i);
         const shipHere = ships.find(s => s.coords.includes(i));
         
-        // Show ships ONLY on friendly board OR if they are sunk on enemy board
+        // Ship Logic
         if (!isInteractive && shipHere) {
              cell.classList.add('ship');
              if (shipHere.hits >= shipHere.size) cell.classList.add('sunk');
         } else if (isInteractive && shipHere && shipHere.hits >= shipHere.size) {
-            // Reveal sunk ships on enemy radar
             cell.classList.add('sunk');
         }
 
-        // Show Hits/Misses
+        // Shot Logic
         if (shotData) {
             cell.classList.add(shotData.hit ? 'hit' : 'miss');
-        } 
-        // Interactivity
-        else if (isInteractive) {
-            cell.onclick = () => handleFire(i);
         }
-
-        grid.appendChild(cell);
-    }
+    });
 }
 
 function handleFire(index) {
+    // Safety check: Don't fire if transitioning
+    if (DOM.screens.transition.classList.contains('hidden') === false) return;
+
     const attacker = state.turn === 1 ? state.p1 : state.p2;
     const defender = state.turn === 1 ? state.p2 : state.p1;
 
-    // Record Shot
+    // Check if already shot
+    if (attacker.shots.some(s => s.index === index)) return;
+
     attacker.moves++;
     const shipHit = defender.ships.find(s => s.coords.includes(index));
     const isHit = !!shipHit;
@@ -456,44 +488,30 @@ function handleFire(index) {
         shipHit.hits++;
         attacker.score += CONFIG.scores.hit;
         
-        // Check Sunk
         if (shipHit.hits === shipHit.size) {
             attacker.score += CONFIG.scores.sink;
-            playAudio('alert'); // Sinking alarm
+            playAudio('alert'); 
             
-            // SPECIAL RULE: Carrier (Size 5) Death = Instant Win
+            // CARRIER RULE
             if (shipHit.size === 5) {
                 attacker.score += CONFIG.scores.win;
-                endGame(attacker, "CARRIER DESTROYED");
+                endGame(attacker, TEXTS[state.lang].carrierSunk);
                 return;
             }
         }
-        
-        // Update UI immediately (Hit grants another turn? No, standard rules usually don't, but let's stick to turn swap for strict tactical play)
-        // Note: Some rules say hit = shoot again. Let's keep it simple: Turn swap.
     }
 
-    DOM.hud.score.textContent = attacker.score;
-    DOM.hud.moves.textContent = attacker.moves;
-    
-    // Re-render immediately to show result
+    // Instant Update
     renderTurn();
 
-    // Check Total Wipeout (Backup win condition)
     if (defender.ships.every(s => s.hits >= s.size)) {
-        endGame(attacker, "FLEET DESTROYED");
+        endGame(attacker, TEXTS[state.lang].win);
         return;
     }
 
-    // Delay then swap turn
+    // Delay swap
     setTimeout(() => {
-        if (isHit && state.mode === 'computer' && state.turn === 2) {
-            // CPU hit, let it shoot again? Or swap? 
-            // Let's swap to be fair.
-            swapTurn();
-        } else {
-            swapTurn();
-        }
+        swapTurn();
     }, 1000);
 }
 
@@ -501,11 +519,10 @@ function swapTurn() {
     state.turn = state.turn === 1 ? 2 : 1;
     
     if (state.mode === 'computer' && state.turn === 2) {
-        // Computer Turn
         renderTurn();
-        setTimeout(computerAI, 1000);
+        // Slightly faster CPU response
+        setTimeout(computerAI, 800);
     } else if (state.mode === 'player') {
-        // PvP Transition
         const nextName = state.turn === 1 ? state.p1.name : state.p2.name;
         showTransition(nextName, renderTurn);
     } else {
@@ -516,30 +533,30 @@ function swapTurn() {
 // --- 8. COMPUTER AI ---
 function computerAI() {
     const cpu = state.p2;
-    const player = state.p1;
     
-    // Simple Hunt Logic: Pick random not yet shot
-    // (A real "Tactical" AI would search around hits, but this is random for now)
-    let index;
-    do {
-        index = Math.floor(Math.random() * 100);
-    } while (cpu.shots.some(s => s.index === index));
-
-    handleFire(index);
+    // Smart-ish Random: Filter available cells first
+    const available = [];
+    for(let i=0; i<100; i++) {
+        if (!cpu.shots.some(s => s.index === i)) available.push(i);
+    }
+    
+    if (available.length > 0) {
+        const randIndex = Math.floor(Math.random() * available.length);
+        handleFire(available[randIndex]);
+    }
 }
 
 // --- 9. GAME OVER ---
 function endGame(winner, reason) {
     playAudio('win');
     
-    // Update High Score
     if (winner.score > state.highScore) {
         state.highScore = winner.score;
         localStorage.setItem('highScore', state.highScore);
         DOM.hud.highScore.textContent = state.highScore;
     }
 
-    document.getElementById('winner-title').textContent = TEXTS[state.lang].win;
+    document.getElementById('winner-title').textContent = reason || TEXTS[state.lang].win;
     document.getElementById('winner-name').textContent = winner.name;
     document.getElementById('winner-moves').textContent = winner.moves;
     document.getElementById('winner-score').textContent = winner.score;
@@ -550,30 +567,32 @@ function endGame(winner, reason) {
 // --- 10. UTILITIES ---
 function playAudio(id) {
     const audio = DOM.audio[id];
+    // Check if element exists (in case user didn't add the menu audio tag yet)
     if (audio) {
         audio.currentTime = 0;
-        audio.play().catch(() => {}); // Catch autoplay blocks
+        audio.play().catch(() => {});
     }
 }
 
 function togglePause() {
+    playAudio('menu');
     alert("PAUSED");
 }
 
 function quitGame() {
+    playAudio('menu');
     if(confirm("Abort mission?")) {
         backToMenu();
     }
 }
 
 function restartGame() {
-    // Reset necessary vars
-    switchScreen('menu'); // Simple reload flow
-    // Ideally, directly call startDeployment() but menu flow is cleaner
+    playAudio('menu');
+    switchScreen('menu'); 
 }
 
-// Settings
 function toggleLanguage() {
+    playAudio('menu');
     state.lang = state.lang === 'en' ? 'tr' : 'en';
     localStorage.setItem('lang', state.lang);
     updateLanguage(state.lang);
@@ -587,15 +606,22 @@ function updateLanguage(lang) {
 }
 
 function toggleTheme() {
+    playAudio('menu');
     document.body.classList.toggle('light-mode');
     state.theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
     localStorage.setItem('theme', state.theme);
 }
 
 function toggleSound() {
-    // Mute toggle implementation
-    alert("Sound settings toggled (Placeholder)");
+    playAudio('menu');
+    alert("Sound settings toggled");
 }
 
-function openSettings() { DOM.screens.settings.classList.remove('hidden'); }
-function closeSettings() { DOM.screens.settings.classList.add('hidden'); }
+function openSettings() { 
+    playAudio('menu');
+    DOM.screens.settings.classList.remove('hidden'); 
+}
+function closeSettings() { 
+    playAudio('menu');
+    DOM.screens.settings.classList.add('hidden'); 
+}
