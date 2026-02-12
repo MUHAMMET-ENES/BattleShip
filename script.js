@@ -1,12 +1,11 @@
 /* =========================================
-   BATTLESHIP ELITE: OPTIMIZED ENGINE
+   BATTLESHIP ELITE: FINAL ENGINE
    ========================================= */
 
-// --- 1. CONFIGURATION & CONSTANTS ---
+// --- 1. CONFIGURATION ---
 const CONFIG = {
-    boardSize: 10,
     ships: [
-        { name: "Carrier", size: 5, id: "carrier" },     // THE TARGET
+        { name: "Carrier", size: 5, id: "carrier" },     // PRIMARY TARGET
         { name: "Battleship", size: 4, id: "battleship" },
         { name: "Cruiser", size: 3, id: "cruiser" },
         { name: "Submarine", size: 3, id: "submarine" },
@@ -19,65 +18,61 @@ const CONFIG = {
     }
 };
 
-// Localization Dictionary
 const TEXTS = {
     en: {
-        placeShip: "Place your",
-        rotate: "Rotate (Caps Lock)",
-        invalid: "Invalid Position!",
-        p1Default: "Admiral 1",
-        p2Default: "Admiral 2",
-        cpuName: "T.A.C.T.I.C.S. AI",
-        turn: "'s Turn",
-        win: "VICTORY!",
-        sunk: "SUNK!",
-        carrierSunk: "TARGET ELIMINATED! VICTORY!",
-        miss: "MISS",
-        hit: "HIT"
+        place: "Deploying:",
+        rotate: "Rotate (CAPS LOCK)",
+        p1Def: "Commander",
+        p2Def: "Enemy",
+        cpu: "AI TACTICAL",
+        turn: "COMMANDING",
+        win: "VICTORY",
+        lose: "DEFEAT",
+        carrierDown: "ENEMY CARRIER DESTROYED! INSTANT WIN!",
+        await: "AWAITING ORDERS"
     },
     tr: {
-        placeShip: "Yerleştir:",
-        rotate: "Döndür (Caps Lock)",
-        invalid: "Geçersiz Konum!",
-        p1Default: "Amiral 1",
-        p2Default: "Amiral 2",
-        cpuName: "Yapay Zeka",
-        turn: "Sırası",
-        win: "ZAFER!",
-        sunk: "BATIRILDI!",
-        carrierSunk: "HEDEF YOK EDİLDİ! ZAFER!",
-        miss: "ISKA",
-        hit: "İSABET"
+        place: "Yerleştiriliyor:",
+        rotate: "Döndür (CAPS LOCK)",
+        p1Def: "Komutan",
+        p2Def: "Düşman",
+        cpu: "YAPAY ZEKA",
+        turn: "KOMUTADA",
+        win: "ZAFER",
+        lose: "YENİLGİ",
+        carrierDown: "DÜŞMAN AMİRAL GEMİSİ BATTI! KAZANDINIZ!",
+        await: "EMİR BEKLENİYOR"
     }
 };
 
-// --- 2. GAME STATE ---
+// --- 2. STATE MANAGEMENT ---
 const state = {
     lang: localStorage.getItem('lang') || 'en',
     theme: localStorage.getItem('theme') || 'dark',
     highScore: parseInt(localStorage.getItem('highScore')) || 0,
-    mode: null, 
-    phase: 'menu', 
     
-    // Deployment Logic
-    deployingPlayer: 1, 
-    selectedShipIndex: 0,
+    mode: null,          // 'player' or 'computer'
+    phase: 'menu',       // menu, profile, deploy, transition, battle, gameover
+    turn: 1,             // 1 or 2
+    
+    // Deployment vars
+    deployingPlayer: 1,
+    selectedShipIdx: 0,
     isHorizontal: true,
-    p1ShipsBuffer: [],
-    p2ShipsBuffer: [],
+    p1Buffer: [],
+    p2Buffer: [],
 
-    // Battle Logic
-    turn: 1, 
-    p1: { name: "", board: [], ships: [], shots: [], score: 0, moves: 0 },
-    p2: { name: "", board: [], ships: [], shots: [], score: 0, moves: 0 }
+    // Players
+    p1: createPlayer(),
+    p2: createPlayer()
 };
 
-// --- 3. DOM ELEMENTS ---
+// --- 3. DOM & AUDIO ---
 const DOM = {
     screens: {
         menu: document.getElementById('main-menu'),
         profile: document.getElementById('profile-screen'),
-        deployment: document.getElementById('deployment-screen'),
+        deploy: document.getElementById('deployment-screen'),
         transition: document.getElementById('transition-screen'),
         game: document.getElementById('game-screen'),
         settings: document.getElementById('settings-modal'),
@@ -85,7 +80,6 @@ const DOM = {
     },
     hud: {
         score: document.getElementById('score-display'),
-        moves: document.getElementById('move-display'),
         turn: document.getElementById('active-player-label'),
         status: document.getElementById('turn-status'),
         highScore: document.getElementById('menu-high-score')
@@ -93,218 +87,192 @@ const DOM = {
     audio: {
         fire: document.getElementById('sfx-fire'),
         hit: document.getElementById('sfx-hit'),
-        miss: document.getElementById('sfx-miss'),
         win: document.getElementById('sfx-win'),
-        alert: document.getElementById('sfx-alert'),
-        // NOTE: Add <audio id="sfx-menu" src="assets/sounds/menu.mp3"></audio> to your HTML
-        menu: document.getElementById('sfx-menu') 
+        lose: document.getElementById('sfx-lose'), // Mapped to miss.mp3 for Defeat
+        menu: document.getElementById('sfx-menu')
     }
 };
 
 // --- 4. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    updateLanguage(state.lang);
+    updateText();
     DOM.hud.highScore.textContent = state.highScore;
-    attachButtonSounds(); // Attach sound to all buttons
-    
-    // Optimized Key Listener for Rotation
+    attachButtonSounds();
+
+    // Rotation Handler (Caps Lock)
     document.addEventListener('keydown', (e) => {
-        if (state.phase === 'deployment') {
-            // Using CapsLock as requested
-            if (e.code === 'CapsLock' || e.key === 'CapsLock') {
-                rotateShip();
-            }
+        if (state.phase === 'deploy' && e.getModifierState("CapsLock")) {
+            rotateShip();
+        } else if (state.phase === 'deploy' && e.code === 'CapsLock') {
+            rotateShip(); // Fallback for some browsers
         }
     });
 });
 
-function initTheme() {
-    if (state.theme === 'light') document.body.classList.add('light-mode');
+function createPlayer() {
+    return { name: "Player", ships: [], shots: [], score: 0 };
 }
 
 function attachButtonSounds() {
-    // Finds all buttons and attaches the click sound
     document.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', () => playAudio('menu'));
+        btn.addEventListener('click', () => playSound('menu'));
     });
 }
 
-// --- 5. NAVIGATION & FLOW ---
-
-function switchScreen(screenName) {
+// --- 5. NAVIGATION ---
+function switchScreen(name) {
     Object.values(DOM.screens).forEach(s => s.classList.add('hidden'));
-    DOM.screens[screenName].classList.remove('hidden');
-    state.phase = screenName;
+    DOM.screens[name].classList.remove('hidden');
+    state.phase = name;
 }
 
 function showProfileScreen(mode) {
     state.mode = mode;
-    const p2Input = document.getElementById('p2-input-group');
-    p2Input.style.display = (mode === 'computer') ? 'none' : 'block';
+    document.getElementById('p2-input-group').style.display = (mode === 'computer') ? 'none' : 'block';
     switchScreen('profile');
 }
 
-function backToMenu() {
-    switchScreen('menu');
-}
-
-// Start Deployment Phase
 function startDeployment() {
-    const p1Name = document.getElementById('p1-name-input').value.trim() || TEXTS[state.lang].p1Default;
-    let p2Name = TEXTS[state.lang].p2Default;
-    
-    if (state.mode === 'computer') {
-        p2Name = TEXTS[state.lang].cpuName;
-    } else {
-        p2Name = document.getElementById('p2-name-input').value.trim() || TEXTS[state.lang].p2Default;
-    }
+    const t = TEXTS[state.lang];
+    state.p1.name = document.getElementById('p1-name-input').value.trim() || t.p1Def;
+    state.p2.name = (state.mode === 'computer') 
+        ? t.cpu 
+        : (document.getElementById('p2-name-input').value.trim() || t.p2Def);
 
-    state.p1 = createPlayer(p1Name);
-    state.p2 = createPlayer(p2Name);
+    // Reset Games
+    state.p1.ships = []; state.p1.shots = []; state.p1.score = 0;
+    state.p2.ships = []; state.p2.shots = []; state.p2.score = 0;
+    state.p1Buffer = []; state.p2Buffer = [];
+    
     state.deployingPlayer = 1;
-    state.p1ShipsBuffer = [];
-    state.p2ShipsBuffer = [];
-    state.selectedShipIndex = 0;
+    setupDeployUI();
+    switchScreen('deploy');
+}
+
+// --- 6. DEPLOYMENT SYSTEM ---
+function setupDeployUI() {
+    state.selectedShipIdx = 0;
+    const isP1 = state.deployingPlayer === 1;
+    const name = isP1 ? state.p1.name : state.p2.name;
+    const t = TEXTS[state.lang];
+
+    document.getElementById('deploy-player-title').textContent = `${t.place} ${name}`;
+    document.getElementById('deploy-status').textContent = "";
     
-    setupDeploymentUI();
-    switchScreen('deployment');
-}
-
-function createPlayer(name) {
-    return { 
-        name, 
-        ships: [], 
-        shots: [], 
-        score: 0, 
-        moves: 0 
-    };
-}
-
-// --- 6. DEPLOYMENT LOGIC (Fixed Stability) ---
-
-function setupDeploymentUI() {
-    const grid = document.getElementById('deploy-grid');
-    const dock = document.getElementById('ship-dock');
-    const title = document.getElementById('deploy-player-title');
     const btn = document.getElementById('btn-start-battle');
-    const status = document.getElementById('deploy-status');
-
-    // Reset UI
-    dock.innerHTML = '';
     btn.disabled = true;
     btn.classList.add('disabled');
-    status.textContent = "";
-
-    const currentPlayer = state.deployingPlayer === 1 ? state.p1 : state.p2;
-    title.textContent = `${TEXTS[state.lang].placeShip} ${currentPlayer.name}`;
-
-    // STABILITY FIX: Only create cells if they don't exist. 
-    // This prevents the container from collapsing and reshaping.
-    if (grid.children.length !== 100) {
-        grid.innerHTML = ''; // Only wipe if size is wrong
-        for (let i = 0; i < 100; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.dataset.index = i;
-            
-            // Attach Events once
-            cell.addEventListener('mouseenter', (e) => showGhostShip(parseInt(e.target.dataset.index)));
-            cell.addEventListener('mouseleave', () => clearGhostShip());
-            cell.addEventListener('click', (e) => placeShip(parseInt(e.target.dataset.index)));
-            
-            grid.appendChild(cell);
-        }
-    } else {
-        // Just clean classes if grid already exists
-        Array.from(grid.children).forEach(c => c.className = 'cell');
-    }
 
     // Create Dock
-    CONFIG.ships.forEach((ship, index) => {
-        const div = document.createElement('div');
-        div.classList.add('dock-ship');
-        div.textContent = `${ship.name} (${ship.size})`;
-        div.dataset.id = index;
-        div.onclick = () => selectShip(index);
-        if (index === 0) div.classList.add('selected');
-        dock.appendChild(div);
+    const dock = document.getElementById('ship-dock');
+    dock.innerHTML = '';
+    CONFIG.ships.forEach((ship, i) => {
+        const el = document.createElement('div');
+        el.className = 'dock-ship' + (i === 0 ? ' selected' : '');
+        el.textContent = `${ship.name} (${ship.size})`;
+        el.onclick = () => {
+            state.selectedShipIdx = i;
+            document.querySelectorAll('.dock-ship').forEach(d => d.classList.remove('selected'));
+            el.classList.add('selected');
+        };
+        dock.appendChild(el);
     });
-    
-    state.selectedShipIndex = 0;
-}
 
-function selectShip(index) {
-    state.selectedShipIndex = index;
-    document.querySelectorAll('.dock-ship').forEach(el => el.classList.remove('selected'));
-    document.querySelector(`.dock-ship[data-id="${index}"]`).classList.add('selected');
+    // Create Grid (Once)
+    const grid = document.getElementById('deploy-grid');
+    grid.innerHTML = ''; // Fresh grid for new player
+    for(let i=0; i<100; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.idx = i;
+        cell.onmouseenter = () => previewShip(i);
+        cell.onmouseleave = () => clearPreview();
+        cell.onclick = () => placeShip(i);
+        grid.appendChild(cell);
+    }
 }
 
 function rotateShip() {
     state.isHorizontal = !state.isHorizontal;
+    clearPreview(); // Clear old rotation
+}
+
+function getCoords(idx, size, horiz) {
+    const x = idx % 10;
+    const y = Math.floor(idx / 10);
+    const coords = [];
     
-    // INSTANT FEEDBACK: Re-trigger hover effect on current cell if mouse is over grid
-    const hovered = document.querySelector('#deploy-grid .cell:hover');
-    if (hovered) {
-        clearGhostShip();
-        showGhostShip(parseInt(hovered.dataset.index));
+    for(let i=0; i<size; i++) {
+        if(horiz) {
+            if(x + i > 9) return null;
+            coords.push(idx + i);
+        } else {
+            if(y + i > 9) return null;
+            coords.push(idx + (i * 10));
+        }
+    }
+    return coords;
+}
+
+function previewShip(idx) {
+    if(state.selectedShipIdx >= CONFIG.ships.length) return;
+    
+    const ship = CONFIG.ships[state.selectedShipIdx];
+    const coords = getCoords(idx, ship.size, state.isHorizontal);
+    const buffer = state.deployingPlayer === 1 ? state.p1Buffer : state.p2Buffer;
+    
+    const grid = document.getElementById('deploy-grid');
+    const valid = coords && !coords.some(c => buffer.some(s => s.coords.includes(c)));
+
+    if(coords) {
+        coords.forEach(c => {
+            if(grid.children[c]) {
+                grid.children[c].classList.add(valid ? 'preview' : 'invalid');
+            }
+        });
     }
 }
 
-function showGhostShip(startIndex) {
-    if (state.selectedShipIndex >= CONFIG.ships.length) return;
-
-    const ship = CONFIG.ships[state.selectedShipIndex];
-    const coords = getShipCoordinates(startIndex, ship.size, state.isHorizontal);
-    const grid = document.getElementById('deploy-grid');
-    const currentBuffer = state.deployingPlayer === 1 ? state.p1ShipsBuffer : state.p2ShipsBuffer;
-
-    const isValid = coords.length === ship.size && !checkCollision(coords, currentBuffer);
-
-    coords.forEach(idx => {
-        if (idx < 100) {
-            const cell = grid.children[idx];
-            // Use 'add' to keep base structure stable
-            cell.classList.add(isValid ? 'preview' : 'invalid');
-        }
-    });
-}
-
-function clearGhostShip() {
-    // Only remove temporary classes, keep 'ship' class if placed
+function clearPreview() {
     document.querySelectorAll('#deploy-grid .cell').forEach(c => {
         c.classList.remove('preview', 'invalid');
     });
 }
 
-function placeShip(startIndex) {
-    if (state.selectedShipIndex >= CONFIG.ships.length) return;
+function placeShip(idx) {
+    if(state.selectedShipIdx >= CONFIG.ships.length) return;
 
-    const ship = CONFIG.ships[state.selectedShipIndex];
-    const coords = getShipCoordinates(startIndex, ship.size, state.isHorizontal);
-    const currentBuffer = state.deployingPlayer === 1 ? state.p1ShipsBuffer : state.p2ShipsBuffer;
+    const ship = CONFIG.ships[state.selectedShipIdx];
+    const coords = getCoords(idx, ship.size, state.isHorizontal);
+    const buffer = state.deployingPlayer === 1 ? state.p1Buffer : state.p2Buffer;
 
-    if (coords.length !== ship.size || checkCollision(coords, currentBuffer)) {
-        playAudio('alert');
+    // Validate
+    if(!coords || coords.some(c => buffer.some(s => s.coords.includes(c)))) {
+        playSound('menu'); // Error sound (using menu click as generic alert)
         return;
     }
 
-    // Valid Placement
-    const newShip = { ...ship, coords, hits: 0 };
-    currentBuffer.push(newShip);
+    // Place
+    playSound('menu');
+    buffer.push({ ...ship, coords, hits: 0 });
     
+    // Update Grid Visuals
     const grid = document.getElementById('deploy-grid');
-    coords.forEach(idx => grid.children[idx].classList.add('ship'));
+    coords.forEach(c => grid.children[c].classList.add('ship'));
+    
+    // Update Dock
+    const dock = document.getElementById('ship-dock');
+    dock.children[state.selectedShipIdx].classList.add('placed');
+    dock.children[state.selectedShipIdx].classList.remove('selected');
 
-    const dockItem = document.querySelector(`.dock-ship[data-id="${state.selectedShipIndex}"]`);
-    dockItem.classList.add('placed');
-    dockItem.classList.remove('selected');
-
-    state.selectedShipIndex++;
-    if (state.selectedShipIndex < CONFIG.ships.length) {
-        selectShip(state.selectedShipIndex);
+    state.selectedShipIdx++;
+    
+    // Check Completion
+    if(state.selectedShipIdx < CONFIG.ships.length) {
+        dock.children[state.selectedShipIdx].classList.add('selected');
     } else {
-        document.getElementById('deploy-status').textContent = "FLEET READY!";
+        document.getElementById('deploy-status').textContent = "READY!";
         const btn = document.getElementById('btn-start-battle');
         btn.disabled = false;
         btn.classList.remove('disabled');
@@ -312,67 +280,37 @@ function placeShip(startIndex) {
 }
 
 function confirmDeployment() {
-    if (state.deployingPlayer === 1) {
-        state.p1.ships = [...state.p1ShipsBuffer];
+    playSound('menu');
+    if(state.deployingPlayer === 1) {
+        state.p1.ships = [...state.p1Buffer];
         
-        if (state.mode === 'computer') {
+        if(state.mode === 'computer') {
             state.p2.ships = generateRandomShips();
-            startGameLoop();
+            startBattle();
         } else {
             state.deployingPlayer = 2;
-            state.selectedShipIndex = 0;
-            state.p1ShipsBuffer = [];
-            
-            showTransition(state.p2.name, () => {
-                setupDeploymentUI();
-                switchScreen('deployment');
-            });
+            showTransition(state.p2.name, setupDeployUI);
         }
     } else {
-        state.p2.ships = [...state.p2ShipsBuffer];
-        startGameLoop();
+        state.p2.ships = [...state.p2Buffer];
+        startBattle();
     }
-}
-
-// Helper: Get Indices
-function getShipCoordinates(start, size, horizontal) {
-    const coords = [];
-    const x = start % 10;
-    const y = Math.floor(start / 10);
-
-    for (let i = 0; i < size; i++) {
-        let idx;
-        if (horizontal) {
-            if (x + i >= 10) return [];
-            idx = start + i;
-        } else {
-            if (y + i >= 10) return [];
-            idx = start + (i * 10);
-        }
-        coords.push(idx);
-    }
-    return coords;
-}
-
-function checkCollision(coords, existingShips) {
-    const allOccupied = existingShips.flatMap(s => s.coords);
-    return coords.some(c => allOccupied.includes(c));
 }
 
 function generateRandomShips() {
     const ships = [];
     const occupied = new Set();
     
-    CONFIG.ships.forEach(template => {
+    CONFIG.ships.forEach(s => {
         let placed = false;
-        while (!placed) {
-            const horizontal = Math.random() > 0.5;
-            const start = Math.floor(Math.random() * 100);
-            const coords = getShipCoordinates(start, template.size, horizontal);
+        while(!placed) {
+            const idx = Math.floor(Math.random() * 100);
+            const horiz = Math.random() > 0.5;
+            const coords = getCoords(idx, s.size, horiz);
             
-            if (coords.length === template.size && !coords.some(c => occupied.has(c))) {
+            if(coords && !coords.some(c => occupied.has(c))) {
                 coords.forEach(c => occupied.add(c));
-                ships.push({ ...template, coords, hits: 0 });
+                ships.push({ ...s, coords, hits: 0 });
                 placed = true;
             }
         }
@@ -380,248 +318,281 @@ function generateRandomShips() {
     return ships;
 }
 
-// --- 7. BATTLE LOOP (Zero-Shake Rendering) ---
-
-function startGameLoop() {
+// --- 7. BATTLE ENGINE ---
+function startBattle() {
     state.turn = 1;
+    state.phase = 'battle';
     
-    // Initialize Grids ONCE at start of battle to prevent shaking
-    initBattleGrid('enemy-grid', true);
-    initBattleGrid('player-grid', false);
+    // Init Battle Grids (Fixed)
+    initBattleGrid('radar-grid', true);
+    initBattleGrid('fleet-grid', false);
     
     switchScreen('game');
     
-    if (state.mode === 'player') {
+    if(state.mode === 'player') {
         showTransition(state.p1.name, renderTurn);
     } else {
         renderTurn();
     }
 }
 
-// Creates the divs once. Future updates only change classes.
-function initBattleGrid(elementId, isInteractive) {
-    const grid = document.getElementById(elementId);
+function initBattleGrid(id, interactive) {
+    const grid = document.getElementById(id);
     grid.innerHTML = '';
-    for (let i = 0; i < 100; i++) {
+    for(let i=0; i<100; i++) {
         const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.dataset.index = i;
-        if (isInteractive) {
-            cell.onclick = () => handleFire(parseInt(cell.dataset.index));
-        }
+        cell.className = 'cell';
+        if(interactive) cell.onclick = () => handleShot(i);
         grid.appendChild(cell);
     }
 }
 
 function showTransition(nextName, callback) {
-    const tScreen = DOM.screens.transition;
+    const screen = DOM.screens.transition;
     document.getElementById('next-player-name').textContent = nextName;
-    tScreen.classList.remove('hidden');
+    screen.classList.remove('hidden');
     
-    const btn = tScreen.querySelector('.btn-primary');
-    // Ensure sound plays on transition button too
+    const btn = screen.querySelector('.btn-primary');
     btn.onclick = () => {
-        playAudio('menu');
-        tScreen.classList.add('hidden');
+        playSound('menu');
+        screen.classList.add('hidden');
         callback();
     };
 }
 
 function renderTurn() {
-    const attacker = state.turn === 1 ? state.p1 : state.p2;
-    const defender = state.turn === 1 ? state.p2 : state.p1;
-    
-    DOM.hud.turn.textContent = attacker.name;
-    DOM.hud.score.textContent = attacker.score;
-    DOM.hud.moves.textContent = attacker.moves;
-    DOM.hud.status.textContent = TEXTS[state.lang].turn;
+    const p1Turn = state.turn === 1;
+    const active = p1Turn ? state.p1 : state.p2;
+    const opponent = p1Turn ? state.p2 : state.p1;
+    const t = TEXTS[state.lang];
 
-    // Update Grids (Visual Only - No DOM Destruction)
-    updateGridVisuals('enemy-grid', defender.ships, attacker.shots, true);
-    updateGridVisuals('player-grid', attacker.ships, defender.shots, false);
+    // HUD Updates
+    DOM.hud.turn.textContent = active.name;
+    DOM.hud.score.textContent = active.score;
+    DOM.hud.status.textContent = t.await;
+
+    // LEFT SCREEN: RADAR (Shows Enemy Board, Hidden Ships)
+    updateGrid('radar-grid', opponent.ships, active.shots, true);
+
+    // RIGHT SCREEN: FLEET (Shows My Board, Visible Ships)
+    updateGrid('fleet-grid', active.ships, opponent.shots, false);
 }
 
-function updateGridVisuals(elementId, ships, shots, isInteractive) {
-    const grid = document.getElementById(elementId);
-    
-    // Loop through existing children instead of rebuilding
-    Array.from(grid.children).forEach((cell, i) => {
-        // Reset class to base
-        cell.className = 'cell';
+function updateGrid(id, ships, shots, hideShips) {
+    const grid = document.getElementById(id);
+    const children = grid.children;
 
-        const shotData = shots.find(s => s.index === i);
-        const shipHere = ships.find(s => s.coords.includes(i));
+    for(let i=0; i<100; i++) {
+        const cell = children[i];
+        cell.className = 'cell'; // Reset
+
+        // Check Ship
+        const ship = ships.find(s => s.coords.includes(i));
+        const shot = shots.find(s => s.index === i);
         
-        // Ship Logic
-        if (!isInteractive && shipHere) {
-             cell.classList.add('ship');
-             if (shipHere.hits >= shipHere.size) cell.classList.add('sunk');
-        } else if (isInteractive && shipHere && shipHere.hits >= shipHere.size) {
-            cell.classList.add('sunk');
+        // 1. Draw Ship (Only if own fleet OR if sunk on radar)
+        if(ship) {
+            const isSunk = ship.hits >= ship.size;
+            if(!hideShips || isSunk) {
+                cell.classList.add('ship');
+                if(isSunk) cell.classList.add('sunk');
+            }
         }
 
-        // Shot Logic
-        if (shotData) {
-            cell.classList.add(shotData.hit ? 'hit' : 'miss');
+        // 2. Draw Marks
+        if(shot) {
+            cell.classList.add(shot.hit ? 'hit' : 'miss');
         }
-    });
+
+        // 3. Hover (Radar only)
+        if(hideShips && !shot) {
+            cell.classList.add('interactive');
+        }
+    }
 }
 
-function handleFire(index) {
-    // Safety check: Don't fire if transitioning
-    if (DOM.screens.transition.classList.contains('hidden') === false) return;
+function handleShot(idx) {
+    // Prevent shooting during transitions or if already shot
+    if(!DOM.screens.transition.classList.contains('hidden')) return;
+    
+    const p1Turn = state.turn === 1;
+    const attacker = p1Turn ? state.p1 : state.p2;
+    const defender = p1Turn ? state.p2 : state.p1;
 
-    const attacker = state.turn === 1 ? state.p1 : state.p2;
-    const defender = state.turn === 1 ? state.p2 : state.p1;
+    if(attacker.shots.some(s => s.index === idx)) return; // Already shot
 
-    // Check if already shot
-    if (attacker.shots.some(s => s.index === index)) return;
+    // FIRE SOUND (Always plays on attempt)
+    playSound('fire');
 
-    attacker.moves++;
-    const shipHit = defender.ships.find(s => s.coords.includes(index));
-    const isHit = !!shipHit;
+    // Logic
+    const ship = defender.ships.find(s => s.coords.includes(idx));
+    const isHit = !!ship;
+    
+    attacker.shots.push({ index: idx, hit: isHit });
 
-    attacker.shots.push({ index, hit: isHit });
-    playAudio(isHit ? 'hit' : 'miss');
-
-    if (isHit) {
-        shipHit.hits++;
+    if(isHit) {
+        playSound('hit');
+        ship.hits++;
         attacker.score += CONFIG.scores.hit;
-        
-        if (shipHit.hits === shipHit.size) {
+
+        // Check Sunk
+        if(ship.hits >= ship.size) {
             attacker.score += CONFIG.scores.sink;
-            playAudio('alert'); 
             
-            // CARRIER RULE
-            if (shipHit.size === 5) {
+            // CARRIER RULE (Size 5)
+            if(ship.size === 5) {
                 attacker.score += CONFIG.scores.win;
-                endGame(attacker, TEXTS[state.lang].carrierSunk);
+                endGame(attacker, TEXTS[state.lang].carrierDown);
+                renderTurn(); // Show final state
                 return;
             }
         }
+
+        // Check Total Wipeout
+        if(defender.ships.every(s => s.hits >= s.size)) {
+            endGame(attacker, TEXTS[state.lang].win);
+            renderTurn();
+            return;
+        }
+
+        // BONUS TURN RULE: If Hit, do NOT swap turn.
+        // Just re-render and let AI fire again if needed.
+        renderTurn();
+        
+        if(state.mode === 'computer' && state.turn === 2) {
+            setTimeout(computerAI, 1000); // AI shoots again
+        }
+
+    } else {
+        // MISS: Turn ends.
+        // Note: No specific 'miss' sound requested here, only 'fire' sound.
+        renderTurn();
+        setTimeout(swapTurn, 800);
     }
-
-    // Instant Update
-    renderTurn();
-
-    if (defender.ships.every(s => s.hits >= s.size)) {
-        endGame(attacker, TEXTS[state.lang].win);
-        return;
-    }
-
-    // Delay swap
-    setTimeout(() => {
-        swapTurn();
-    }, 1000);
 }
 
 function swapTurn() {
     state.turn = state.turn === 1 ? 2 : 1;
-    
-    if (state.mode === 'computer' && state.turn === 2) {
-        renderTurn();
-        // Slightly faster CPU response
-        setTimeout(computerAI, 800);
-    } else if (state.mode === 'player') {
+
+    if(state.mode === 'player') {
         const nextName = state.turn === 1 ? state.p1.name : state.p2.name;
         showTransition(nextName, renderTurn);
     } else {
+        // Computer Mode
         renderTurn();
+        if(state.turn === 2) {
+            setTimeout(computerAI, 1000);
+        }
     }
 }
 
-// --- 8. COMPUTER AI ---
 function computerAI() {
-    const cpu = state.p2;
-    
-    // Smart-ish Random: Filter available cells first
-    const available = [];
+    if(state.phase !== 'battle') return;
+
+    // AI Logic: Find valid targets
+    const validMoves = [];
     for(let i=0; i<100; i++) {
-        if (!cpu.shots.some(s => s.index === i)) available.push(i);
+        if(!state.p2.shots.some(s => s.index === i)) {
+            validMoves.push(i);
+        }
     }
-    
-    if (available.length > 0) {
-        const randIndex = Math.floor(Math.random() * available.length);
-        handleFire(available[randIndex]);
+
+    if(validMoves.length > 0) {
+        // Random shot (Tactical AI is complex, sticking to random for stability)
+        const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+        handleShot(move);
     }
 }
 
-// --- 9. GAME OVER ---
+// --- 8. GAME OVER ---
 function endGame(winner, reason) {
-    playAudio('win');
+    state.phase = 'gameover';
     
-    if (winner.score > state.highScore) {
+    // Save High Score
+    if(winner.score > state.highScore) {
         state.highScore = winner.score;
         localStorage.setItem('highScore', state.highScore);
         DOM.hud.highScore.textContent = state.highScore;
     }
 
-    document.getElementById('winner-title').textContent = reason || TEXTS[state.lang].win;
+    // Determine Sound: Win or Lose (Miss.mp3)
+    const isHumanWinner = (winner === state.p1);
+    // If Human wins -> Win Sound. If CPU wins -> Lose Sound (Miss.mp3)
+    if (state.mode === 'computer' && !isHumanWinner) {
+        playSound('lose'); // Plays miss.mp3
+        document.getElementById('winner-title').style.color = 'red';
+        document.getElementById('end-icon').className = 'fas fa-skull-crossbones fa-3x';
+    } else {
+        playSound('win');
+        document.getElementById('winner-title').style.color = 'gold';
+        document.getElementById('end-icon').className = 'fas fa-medal fa-3x';
+    }
+
+    document.getElementById('winner-title').textContent = reason;
     document.getElementById('winner-name').textContent = winner.name;
-    document.getElementById('winner-moves').textContent = winner.moves;
     document.getElementById('winner-score').textContent = winner.score;
     
     switchScreen('gameOver');
 }
 
-// --- 10. UTILITIES ---
-function playAudio(id) {
-    const audio = DOM.audio[id];
-    // Check if element exists (in case user didn't add the menu audio tag yet)
-    if (audio) {
+// --- 9. UTILITIES ---
+function playSound(key) {
+    const audio = DOM.audio[key];
+    if(audio) {
         audio.currentTime = 0;
-        audio.play().catch(() => {});
+        audio.play().catch(e => {});
     }
 }
 
 function togglePause() {
-    playAudio('menu');
-    alert("PAUSED");
+    playSound('menu');
+    alert("GAME PAUSED");
 }
 
 function quitGame() {
-    playAudio('menu');
-    if(confirm("Abort mission?")) {
-        backToMenu();
+    playSound('menu');
+    if(confirm("Exit battle?")) {
+        switchScreen('menu');
     }
 }
 
 function restartGame() {
-    playAudio('menu');
-    switchScreen('menu'); 
+    playSound('menu');
+    switchScreen('menu');
 }
 
-function toggleLanguage() {
-    playAudio('menu');
-    state.lang = state.lang === 'en' ? 'tr' : 'en';
-    localStorage.setItem('lang', state.lang);
-    updateLanguage(state.lang);
-}
-
-function updateLanguage(lang) {
-    const t = TEXTS[lang];
-    document.querySelectorAll('[data-tr]').forEach(el => {
-        el.textContent = el.getAttribute(`data-${lang}`);
-    });
+function initTheme() {
+    if(state.theme === 'light') document.body.classList.add('light-mode');
 }
 
 function toggleTheme() {
-    playAudio('menu');
+    playSound('menu');
     document.body.classList.toggle('light-mode');
-    state.theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', state.theme);
 }
 
-function toggleSound() {
-    playAudio('menu');
-    alert("Sound settings toggled");
+function toggleLanguage() {
+    playSound('menu');
+    state.lang = state.lang === 'en' ? 'tr' : 'en';
+    localStorage.setItem('lang', state.lang);
+    updateText();
 }
 
-function openSettings() { 
-    playAudio('menu');
-    DOM.screens.settings.classList.remove('hidden'); 
+function updateText() {
+    const t = TEXTS[state.lang];
+    document.querySelectorAll('[data-tr]').forEach(el => {
+        const key = state.lang === 'tr' ? 'data-tr' : 'data-en';
+        el.textContent = el.getAttribute(key);
+    });
 }
-function closeSettings() { 
-    playAudio('menu');
-    DOM.screens.settings.classList.add('hidden'); 
+
+function closeSettings() {
+    playSound('menu');
+    DOM.screens.settings.classList.add('hidden');
+}
+
+function openSettings() {
+    playSound('menu');
+    DOM.screens.settings.classList.remove('hidden');
 }
