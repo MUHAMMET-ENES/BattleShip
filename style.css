@@ -486,3 +486,34 @@ body {
   :root { --cell-size: 28px; }
   .game-title { font-size: 2.5rem; }
 }
+/* Add to style.css */
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: rgba(0,0,0,0.3);
+}
+
+.leaderboard-table th, .leaderboard-table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.leaderboard-table th {
+  background: rgba(52, 152, 219, 0.2);
+  color: var(--accent-color);
+  text-transform: uppercase;
+}
+
+.leaderboard-table tr:nth-child(even) {
+  background: rgba(255,255,255,0.05);
+}
+
+.leaderboard-container {
+  width: 100%;
+  max-width: 600px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
