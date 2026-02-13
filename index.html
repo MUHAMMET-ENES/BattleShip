@@ -30,7 +30,8 @@
     </div>
 
     <div id="leaderboard-screen" class="screen hidden">
-        <h2 data-tr="EN İYİ 10 KOMUTAN" data-en="TOP 10 COMMANDERS">TOP 10 COMMANDERS</h2>
+        <h2 data-tr="EN İYİ KOMUTANLAR" data-en="TOP COMMANDERS">TOP COMMANDERS</h2>
+        <p class="leaderboard-hint" data-tr="(Sıralama: En Az Hamle > En Kısa Süre)" data-en="(Rank: Fewest Moves > Shortest Time)">(Rank: Fewest Moves > Shortest Time)</p>
         <div class="leaderboard-container">
             <table class="leaderboard-table">
                 <thead>
@@ -38,11 +39,11 @@
                         <th>#</th>
                         <th data-tr="İsim" data-en="Name">Name</th>
                         <th data-tr="Hamle" data-en="Moves">Moves</th>
+                        <th data-tr="Puan" data-en="Score">Score</th>
                         <th data-tr="Süre" data-en="Time">Time</th>
                     </tr>
                 </thead>
-                <tbody id="leaderboard-body">
-                    </tbody>
+                <tbody id="leaderboard-body"></tbody>
             </table>
         </div>
         <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;" data-tr="GERİ" data-en="BACK">BACK</button>
@@ -52,11 +53,11 @@
         <h2 data-tr="KİMLİK DOĞRULAMA" data-en="IDENTIFICATION">IDENTIFICATION</h2>
         <div class="profile-form">
             <div class="input-group">
-                <label data-tr="1. Oyuncu İsmi (Zorunlu)" data-en="Player 1 Name (Required)">Player 1 Name (Required)</label>
+                <label data-tr="1. Oyuncu İsmi" data-en="Player 1 Name">Player 1 Name</label>
                 <input type="text" id="p1-name-input" placeholder="Enter Name" maxlength="12">
             </div>
             <div class="input-group" id="p2-input-group">
-                <label data-tr="2. Oyuncu İsmi (Zorunlu)" data-en="Player 2 Name (Required)">Player 2 Name (Required)</label>
+                <label data-tr="2. Oyuncu İsmi" data-en="Player 2 Name">Player 2 Name</label>
                 <input type="text" id="p2-name-input" placeholder="Enter Name" maxlength="12">
             </div>
         </div>
@@ -68,7 +69,7 @@
 
     <div id="deployment-screen" class="screen hidden">
         <header class="game-header">
-            <h3 id="deploy-player-title">Admiral 1 Setup</h3>
+            <h3 id="deploy-player-title">Setup</h3>
             <div class="header-controls">
                 <span class="hint-text" data-tr="Döndürmek için CAPS LOCK" data-en="CAPS LOCK to Rotate">CAPS LOCK to Rotate</span>
             </div>
@@ -97,37 +98,49 @@
     </div>
 
     <div id="game-screen" class="screen hidden">
-        <header class="game-header">
-            <div class="header-left">
-                <button class="btn-icon" onclick="togglePause()"><i class="fas fa-pause"></i></button>
-                <button class="btn-icon" onclick="quitGame()"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
+        <header class="game-header-tactical">
             
-            <div class="header-center">
-                <div class="score-board">
-                    <div class="hud-item">
-                        <span class="hud-label" data-tr="HAMLE" data-en="MOVES">MOVES</span>
-                        <span id="move-display">0</span>
-                    </div>
-                    <div class="hud-item">
-                        <span class="hud-label" data-tr="SÜRE" data-en="TIME">TIME</span>
-                        <span id="time-display">00:00</span>
-                    </div>
+            <div class="player-stat-box active" id="p1-stat-box">
+                <div class="stat-name" id="p1-hud-name">Player 1</div>
+                <div class="stat-row">
+                    <span class="stat-label">SCORE:</span>
+                    <span class="stat-value" id="p1-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">TIME:</span>
+                    <span class="stat-value" id="p1-timer">00:00</span>
                 </div>
             </div>
 
-            <div class="header-right">
-                <span id="active-player-label" class="turn-badge">Player 1</span>
+            <div class="center-controls">
+                <div id="turn-indicator" class="turn-badge">YOUR TURN</div>
+                <div class="control-buttons">
+                    <button class="btn-icon-small" onclick="togglePause()"><i class="fas fa-pause"></i></button>
+                    <button class="btn-icon-small" onclick="quitGame()"><i class="fas fa-flag"></i></button>
+                </div>
             </div>
+
+            <div class="player-stat-box" id="p2-stat-box">
+                <div class="stat-name" id="p2-hud-name">CPU</div>
+                <div class="stat-row">
+                    <span class="stat-label">SCORE:</span>
+                    <span class="stat-value" id="p2-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">TIME:</span>
+                    <span class="stat-value" id="p2-timer">00:00</span>
+                </div>
+            </div>
+
         </header>
 
         <div class="battlefield">
-            <div class="board-container" id="radar-container">
+            <div class="board-container">
                 <h3 class="board-label" data-tr="RADAR (Hedef)" data-en="RADAR (Target)">RADAR (Target)</h3>
                 <div id="radar-grid" class="grid interactive-grid"></div>
             </div>
 
-            <div class="board-container" id="fleet-container">
+            <div class="board-container">
                 <h3 class="board-label" data-tr="FİLONUZ" data-en="YOUR FLEET">YOUR FLEET</h3>
                 <div id="fleet-grid" class="grid status-grid"></div>
             </div>
@@ -155,7 +168,7 @@
             <h2 id="winner-title">VICTORY!</h2>
             <p class="result-detail"><span data-tr="Kazanan:" data-en="Winner:">Winner:</span> <strong id="winner-name">Player</strong></p>
             <p class="result-detail highlight"><span data-tr="Toplam Hamle:" data-en="Total Moves:">Total Moves:</span> <strong id="winner-moves">0</strong></p>
-            <p class="result-detail"><span data-tr="Süre:" data-en="Time:">Time:</span> <strong id="winner-time">00:00</strong></p>
+            <p class="result-detail"><span data-tr="Puan:" data-en="Score:">Score:</span> <strong id="winner-score">0</strong></p>
             <div class="modal-actions">
                 <button class="btn btn-primary" onclick="restartGame()" data-tr="TEKRAR OYNA" data-en="PLAY AGAIN">PLAY AGAIN</button>
                 <button class="btn btn-danger" onclick="quitGame()" data-tr="ANA MENÜ" data-en="MAIN MENU">MAIN MENU</button>
