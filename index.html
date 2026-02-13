@@ -23,10 +23,62 @@
             <div class="menu-buttons">
                 <button class="btn btn-primary" onclick="showProfileScreen('computer')" data-tr="TEK OYUNCU (PvC)" data-en="SINGLE PLAYER (PvC)">SINGLE PLAYER (PvC)</button>
                 <button class="btn btn-primary" onclick="showProfileScreen('player')" data-tr="ÇOK OYUNCU (PvP)" data-en="MULTIPLAYER (PvP)">MULTIPLAYER (PvP)</button>
+                <button class="btn btn-secondary" onclick="showHowToPlay()" data-tr="NASIL OYNANIR?" data-en="HOW TO PLAY">HOW TO PLAY</button>
                 <button class="btn btn-secondary" onclick="openSettings()" data-tr="AYARLAR" data-en="SETTINGS">SETTINGS</button>
                 <button class="btn btn-secondary" onclick="showLeaderboard()" data-tr="LİDER TABLOSU" data-en="LEADERBOARD">LEADERBOARD</button>
             </div>
         </div>
+
+        <div class="credits">
+            <span data-tr="Geliştirici:" data-en="Developer:">Developer:</span>
+            <a href="https://www.linkedin.com/in/muhammet-enes-karao%C4%9Flan-563726262/" target="_blank">Muhammet Enes Karaoğlan</a>
+        </div>
+    </div>
+
+    <div id="how-to-play-screen" class="screen hidden">
+        <h2 data-tr="NASIL OYNANIR?" data-en="HOW TO PLAY">HOW TO PLAY</h2>
+        <div class="rules-container">
+            
+            <div class="rule-box">
+                <h3 data-tr="Oyun Amacı" data-en="Objective">Objective</h3>
+                <p data-tr="Rakibinizin tüm gemilerini batırın! Amiral gemisini (5 birim) batıran oyunu anında kazanır." 
+                   data-en="Sink all enemy ships! Destroying the Carrier (5-unit) grants an instant victory.">
+                   Sink all enemy ships! Destroying the Carrier (5-unit) grants an instant victory.
+                </p>
+            </div>
+
+            <div class="rule-box">
+                <h3 data-tr="Kontroller & Yerleşim" data-en="Controls & Placement">Controls & Placement</h3>
+                <p data-tr="Gemilerinizi sürükleyin veya tıklayarak yerleştirin. Yönü değiştirmek için 'R' tuşuna basın veya ekrandaki 'Döndür' butonunu kullanın." 
+                   data-en="Drag or click to place ships. Press 'R' key or use the on-screen 'Rotate' button to change orientation.">
+                   Drag or click to place ships. Press 'R' key or use the on-screen 'Rotate' button to change orientation.
+                </p>
+            </div>
+
+            <div class="rule-box">
+                <h3 data-tr="Oyun Modları" data-en="Game Modes">Game Modes</h3>
+                <ul>
+                    <li data-tr="PvC: Yapay zekaya karşı yarışın. En az hamle ve sürede bitirmeye çalışın." 
+                        data-en="PvC: Race against the Tactical AI. Try to finish with minimal moves and time.">
+                        PvC: Race against the Tactical AI.
+                    </li>
+                    <li data-tr="PvP: Arkadaşınızla aynı cihazda sırayla oynayın." 
+                        data-en="PvP: Pass-and-play with a friend on the same device.">
+                        PvP: Pass-and-play with a friend.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="rule-box">
+                <h3 data-tr="Puanlama" data-en="Scoring">Scoring</h3>
+                <p data-tr="İsabet: +10 Puan | Batırma: +10 Ekstra Puan. Lider tablosu en az hamle sayısına göre sıralanır." 
+                   data-en="Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves first.">
+                   Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves first.
+                </p>
+            </div>
+
+        </div>
+        <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;" data-tr="GERİ" data-en="BACK">BACK</button>
     </div>
 
     <div id="leaderboard-screen" class="screen hidden">
@@ -71,7 +123,7 @@
         <header class="game-header">
             <h3 id="deploy-player-title">Setup</h3>
             <div class="header-controls">
-                <span class="hint-text" data-tr="Döndürmek için CAPS LOCK" data-en="CAPS LOCK to Rotate">CAPS LOCK to Rotate</span>
+                <button class="btn btn-sm btn-secondary" onclick="rotateShip()" id="btn-rotate-ui" data-tr="DÖNDÜR (R)" data-en="ROTATE (R)">ROTATE (R)</button>
             </div>
         </header>
         <div class="battlefield">
@@ -150,14 +202,22 @@
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
             <h2 data-tr="AYARLAR" data-en="SETTINGS">SETTINGS</h2>
+            
             <div class="settings-group">
                 <span data-tr="Dil" data-en="Language">Language</span>
                 <button class="btn btn-sm btn-secondary" onclick="toggleLanguage()">TR / EN</button>
             </div>
+
             <div class="settings-group">
                 <span data-tr="Karanlık Mod" data-en="Dark Mode">Dark Mode</span>
                 <button class="btn btn-sm btn-secondary" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
             </div>
+
+            <div class="settings-group">
+                <span data-tr="Ses Seviyesi" data-en="Volume">Volume</span>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1" onchange="setVolume(this.value)">
+            </div>
+
             <button class="btn btn-danger" onclick="closeSettings()" data-tr="KAPAT" data-en="CLOSE">CLOSE</button>
         </div>
     </div>
