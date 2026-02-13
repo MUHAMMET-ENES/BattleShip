@@ -123,7 +123,7 @@ body {
   z-index: 5;
 }
 
-/* CREDITS */
+/* CREDITS FOOTER */
 .credits {
   position: absolute;
   bottom: 20px;
@@ -188,7 +188,7 @@ body {
 }
 
 /* =========================================
-   5. TACTICAL SPLIT HEADER
+   5. TACTICAL SPLIT HEADER (GAME HUD)
    ========================================= */
 .game-header-tactical {
     width: 95%;
@@ -350,8 +350,22 @@ body {
 .cell.invalid { background-color: rgba(231, 76, 60, 0.5); cursor: not-allowed; }
 
 /* =========================================
-   7. BUTTONS & UI
+   7. BUTTONS & DEPLOYMENT HEADER
    ========================================= */
+.game-header {
+    width: 95%;
+    max-width: 800px;
+    background: var(--panel-bg);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--grid-line);
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
 .btn {
   padding: 14px 24px;
   font-size: 1rem;
@@ -373,7 +387,10 @@ body {
 
 .btn-success { background: var(--success-color); color: white; }
 .btn-danger { background: var(--danger-color); color: white; }
-.btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; }
+
+/* Disabled State */
+.btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
 
 /* =========================================
    8. SETTINGS & INPUTS
@@ -388,7 +405,7 @@ body {
   width: 100%;
 }
 
-/* Volume Slider Styling */
+/* Volume Slider */
 input[type=range] {
   -webkit-appearance: none;
   width: 120px;
@@ -412,7 +429,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   background: #fff;
 }
 
-/* Input Fields (Name) */
+/* Input Fields */
 .input-group { margin-bottom: 1.5rem; width: 100%; text-align: left; }
 .input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; }
 .input-group input { 
