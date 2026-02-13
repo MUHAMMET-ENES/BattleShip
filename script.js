@@ -1,5 +1,5 @@
 /* =========================================
-   BATTLESHIP ELITE: TACTICAL ENGINE v3
+   BATTLESHIP ELITE: FINAL FIXED ENGINE
    ========================================= */
 
 const CONFIG = {
@@ -12,33 +12,33 @@ const CONFIG = {
     ],
     scores: {
         hit: 10,
-        sink: 10 // Bonus (Total 20 for the sinking shot)
+        sink: 10 // Bonus
     }
 };
 
 const TEXTS = {
     en: {
         place: "Deploying:",
-        rotate: "Rotate (CAPS LOCK)",
+        rotate: "Rotate (Press 'R')",
         cpu: "TACTICAL AI",
         turnYou: "YOUR TURN",
         turnOpp: "OPPONENT'S TURN",
         win: "VICTORY!",
         lose: "DEFEAT!",
-        carrierDown: "HOSTILE CARRIER DESTROYED! INSTANT WIN!",
+        carrierDown: "HOSTILE CARRIER DESTROYED!",
         alertName: "Enter name!",
         you: "YOU",
         enemy: "ENEMY"
     },
     tr: {
         place: "Yerleştir:",
-        rotate: "Döndür (CAPS LOCK)",
+        rotate: "Döndür ('R' Tuşu)",
         cpu: "YAPAY ZEKA",
         turnYou: "SIRA SİZDE",
         turnOpp: "RAKİBİN SIRASI",
         win: "ZAFER!",
         lose: "YENİLGİ!",
-        carrierDown: "DÜŞMAN AMİRAL GEMİSİ BATTI! ZAFER!",
+        carrierDown: "DÜŞMAN AMİRAL GEMİSİ BATTI!",
         alertName: "İsim giriniz!",
         you: "SİZ",
         enemy: "DÜŞMAN"
@@ -50,7 +50,7 @@ const state = {
     theme: localStorage.getItem('theme') || 'dark',
     mode: null,
     phase: 'menu',
-    turn: 1,
+    turn: 1, // 1 = Player 1, 2 = Player 2 (or CPU)
     isLocked: false,
     
     // Timers
@@ -58,8 +58,8 @@ const state = {
     p1Seconds: 0,
     p2Seconds: 0,
 
-    // AI Memory (Hunt & Target)
-    aiTargetStack: [], // Stack for adjacent targets
+    // AI Memory
+    aiTargetStack: [], 
     
     deployingPlayer: 1,
     selectedShipIdx: 0,
@@ -106,8 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     updateText();
     attachButtonSounds();
+    
+    // ROTATION KEY FIX: 'R' Key
     document.addEventListener('keydown', (e) => {
-        if (state.phase === 'deploy' && (e.code === 'CapsLock' || e.getModifierState("CapsLock"))) {
+        if (state.phase === 'deploy' && (e.key === 'r' || e.key === 'R')) {
             rotateShip();
         }
     });
@@ -147,11 +149,9 @@ function validateAndStart() {
     state.p1 = createPlayer(); state.p1.name = p1Name;
     state.p2 = createPlayer(); state.p2.name = (state.mode === 'computer') ? t.cpu : p2Name;
     
-    // Reset AI Memory
     state.aiTargetStack = [];
     state.p1Seconds = 0;
     state.p2Seconds = 0;
-
     state.p1Buffer = []; state.p2Buffer = [];
     state.deployingPlayer = 1;
     
@@ -201,7 +201,15 @@ function selectShipIdx(i) {
 
 function rotateShip() {
     state.isHorizontal = !state.isHorizontal;
-    clearPreview();
+    
+    // Re-trigger preview if mouse is hovering
+    const hovered = document.querySelector('#deploy-grid .cell:hover');
+    if (hovered) {
+        clearPreview();
+        // Calculate index from nodes since we don't have direct access here easily without re-query
+        const idx = Array.from(hovered.parentNode.children).indexOf(hovered);
+        previewShip(idx);
+    }
 }
 
 function getCoords(idx, size, horiz) {
@@ -306,17 +314,17 @@ function startBattle() {
     state.turn = 1;
     state.isLocked = false;
     
-    initBattleGrid('radar-grid', true);
-    initBattleGrid('fleet-grid', false);
-    
     // Set Names on HUD
     DOM.hud.p1Name.textContent = state.p1.name;
     DOM.hud.p2Name.textContent = state.p2.name;
 
-    // Start Timer Interval
+    // Start Timer
     if (state.timerInterval) clearInterval(state.timerInterval);
     state.timerInterval = setInterval(gameTimerTick, 1000);
 
+    // Initial Render
+    initBattleGrid('radar-grid', true);
+    initBattleGrid('fleet-grid', false);
     switchScreen('game');
 
     if(state.mode === 'player') {
@@ -353,42 +361,29 @@ function initBattleGrid(id, interactive) {
     }
 }
 
+// *** CRITICAL RENDER FIX: Fixed Perspective for PvC ***
 function renderTurn() {
     const t = TEXTS[state.lang];
     const isP1 = state.turn === 1;
 
-    // Active Player / Opponent refs
-    let active, opponent;
-    
-    if (state.mode === 'computer') {
-        // In PvC, HUD always shows P1 perspective, but we highlight CPU box if it's CPU turn
-        active = state.p1;
-        opponent = state.p2;
-        
-        DOM.hud.p1Box.classList.toggle('active', isP1);
-        DOM.hud.p2Box.classList.toggle('active', !isP1);
-        DOM.hud.turn.textContent = isP1 ? t.turnYou : t.turnOpp;
-    } else {
-        // PvP
-        active = isP1 ? state.p1 : state.p2;
-        opponent = isP1 ? state.p2 : state.p1;
-        
-        DOM.hud.p1Box.classList.toggle('active', isP1);
-        DOM.hud.p2Box.classList.toggle('active', !isP1);
-        DOM.hud.turn.textContent = t.turnYou;
-    }
-
-    // Update Scores
+    // HUD Update
+    DOM.hud.p1Box.classList.toggle('active', isP1);
+    DOM.hud.p2Box.classList.toggle('active', !isP1);
     DOM.hud.p1Score.textContent = state.p1.score;
     DOM.hud.p2Score.textContent = state.p2.score;
 
-    // Render Grids (Always from P1/Active perspective in PvC)
-    // If PvC, we always show P1's radar and P1's fleet.
     if (state.mode === 'computer') {
-        updateGrid('radar-grid', state.p2.ships, state.p1.shots, true); // P1 shooting at P2
-        updateGrid('fleet-grid', state.p1.ships, state.p2.shots, false); // P2 shooting at P1
+        DOM.hud.turn.textContent = isP1 ? t.turnYou : t.turnOpp;
+        // PvC Mode:
+        // Left (Radar) = P2 Ships (Hidden), P1 Shots
+        updateGrid('radar-grid', state.p2.ships, state.p1.shots, true);
+        // Right (Fleet) = P1 Ships (Visible), P2 Shots
+        updateGrid('fleet-grid', state.p1.ships, state.p2.shots, false);
     } else {
-        // PvP: Show Active Player's perspective
+        // PvP Mode: Swaps perspective
+        const active = isP1 ? state.p1 : state.p2;
+        const opponent = isP1 ? state.p2 : state.p1;
+        DOM.hud.turn.textContent = t.turnYou;
         updateGrid('radar-grid', opponent.ships, active.shots, true);
         updateGrid('fleet-grid', active.ships, opponent.shots, false);
     }
@@ -405,6 +400,7 @@ function updateGrid(id, ships, shots, hideShips) {
 
         if(ship) {
             const isSunk = ship.hits >= ship.size;
+            // Show ship if not hidden OR if it's sunk
             if(!hideShips || isSunk) {
                 cell.classList.add('ship');
                 if(isSunk) cell.classList.add('sunk');
@@ -420,19 +416,18 @@ function updateGrid(id, ships, shots, hideShips) {
 }
 
 function handleShot(idx) {
-    // 1. Validation
     if(state.isLocked || !DOM.screens.transition.classList.contains('hidden')) return;
 
     const p1Turn = state.turn === 1;
     const attacker = p1Turn ? state.p1 : state.p2;
     const defender = p1Turn ? state.p2 : state.p1;
 
-    // Prevent AI click or double shot
-    if(state.mode === 'computer' && !p1Turn) return; 
-    if(attacker.shots.some(s => s.index === idx)) return;
+    // Blocks logic
+    if(state.mode === 'computer' && !p1Turn) return; // Block human clicking for CPU
+    if(attacker.shots.some(s => s.index === idx)) return; // Already shot
 
-    // 2. Execute Shot
-    state.isLocked = true; // Lock immediately
+    // Fire
+    state.isLocked = true;
     executeFire(idx, attacker, defender);
 }
 
@@ -450,40 +445,39 @@ function executeFire(idx, attacker, defender) {
         ship.hits++;
         attacker.score += CONFIG.scores.hit;
 
-        // Add Neighbors to AI Stack (If Computer)
+        // Computer Intelligence: Add neighbors to stack
         if (state.mode === 'computer' && attacker === state.p2) {
             addNeighborsToStack(idx, attacker.shots);
         }
 
-        // Check Win
+        // Win Checks
         if (ship.size === 5 && ship.hits === 5) {
-            attacker.score += CONFIG.scores.sink; // Carrier Bonus
+            attacker.score += CONFIG.scores.sink;
             endGame(attacker, TEXTS[state.lang].carrierDown); 
             return;
         }
-        
         if (ship.hits === ship.size) {
-            attacker.score += CONFIG.scores.sink; // Sinking Bonus
+            attacker.score += CONFIG.scores.sink;
         }
-
         if (defender.ships.every(s => s.hits >= s.size)) {
             endGame(attacker, TEXTS[state.lang].win);
             return;
         }
 
-        // BONUS TURN Logic
+        // BONUS TURN Logic (Unlock and let attack continue)
         renderTurn();
         setTimeout(() => {
             state.isLocked = false; 
+            // If Computer Hit, Computer shoots again immediately
             if (state.mode === 'computer' && state.turn === 2) {
-                computerAI(); // AI shoots again
+                computerAI();
             }
-        }, 1000);
+        }, 800);
 
     } else {
         // MISS -> Swap Turn
         renderTurn();
-        setTimeout(swapTurn, 1000);
+        setTimeout(swapTurn, 800);
     }
 }
 
@@ -496,32 +490,32 @@ function swapTurn() {
         showTransition(nextName, renderTurn);
     } else {
         renderTurn();
+        // Trigger AI Turn if it's Player 2
         if(state.turn === 2) {
-            state.isLocked = true; // Lock player input during AI turn
-            setTimeout(computerAI, 1000);
+            state.isLocked = true; // Lock UI for Player 1
+            setTimeout(computerAI, 500); // 500ms delay for "thinking"
         }
     }
 }
 
-/* --- TACTICAL AI (Hunt & Target) --- */
+/* --- COMPUTER AI --- */
 function computerAI() {
-    if(state.phase !== 'battle') return;
+    if(state.phase !== 'battle' || state.turn !== 2) return;
+    
     const ai = state.p2;
     const player = state.p1;
-
     let targetIdx = -1;
 
-    // 1. TARGET MODE: Check Stack
+    // 1. Target Mode
     while (state.aiTargetStack.length > 0) {
         const candidate = state.aiTargetStack.pop();
-        // Check if valid and not shot yet
         if (candidate >= 0 && candidate < 100 && !ai.shots.some(s => s.index === candidate)) {
             targetIdx = candidate;
             break;
         }
     }
 
-    // 2. HUNT MODE: Random if stack empty or invalid
+    // 2. Hunt Mode
     if (targetIdx === -1) {
         const validMoves = [];
         for(let i=0; i<100; i++) {
@@ -541,16 +535,14 @@ function addNeighborsToStack(idx, shots) {
     const x = idx % 10;
     const y = Math.floor(idx / 10);
     const potential = [
-        { r: y - 1, c: x }, // Up
-        { r: y + 1, c: x }, // Down
-        { r: y, c: x - 1 }, // Left
-        { r: y, c: x + 1 }  // Right
+        { r: y - 1, c: x }, { r: y + 1, c: x }, { r: y, c: x - 1 }, { r: y, c: x + 1 }
     ];
+    // Shuffle slightly to make AI less predictable
+    potential.sort(() => Math.random() - 0.5);
 
     potential.forEach(p => {
         if (p.r >= 0 && p.r < 10 && p.c >= 0 && p.c < 10) {
             const index = p.r * 10 + p.c;
-            // Only push if not already shot
             if (!shots.some(s => s.index === index)) {
                 state.aiTargetStack.push(index);
             }
@@ -558,7 +550,7 @@ function addNeighborsToStack(idx, shots) {
     });
 }
 
-/* --- GAME OVER --- */
+/* --- GAME OVER & SCORING --- */
 function endGame(winner, reason) {
     clearInterval(state.timerInterval);
     state.phase = 'gameover';
@@ -584,7 +576,6 @@ function saveScore(name, moves, score, time) {
     let scores = JSON.parse(localStorage.getItem('battleship_rank') || '[]');
     scores.push({ name, moves, score, time });
     
-    // Sort: Fewest Moves > Shortest Time
     scores.sort((a, b) => {
         if (a.moves !== b.moves) return a.moves - b.moves;
         return a.time - b.time;
