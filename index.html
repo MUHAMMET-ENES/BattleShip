@@ -48,32 +48,18 @@
             </div>
 
             <div class="rule-box">
-                <h3 data-tr="Kontroller & Yerleşim" data-en="Controls & Placement">Controls & Placement</h3>
-                <p data-tr="Gemilerinizi sürükleyin veya tıklayarak yerleştirin. Yönü değiştirmek için 'R' tuşuna basın veya ekrandaki 'Döndür' butonunu kullanın." 
-                   data-en="Drag or click to place ships. Press 'R' key or use the on-screen 'Rotate' button to change orientation.">
-                   Drag or click to place ships. Press 'R' key or use the on-screen 'Rotate' button to change orientation.
+                <h3 data-tr="Kontroller" data-en="Controls">Controls</h3>
+                <p data-tr="Gemileri sürükleyerek yerleştirin. Yönü değiştirmek için 'R' tuşuna basın veya ekrandaki 'Döndür' butonunu kullanın." 
+                   data-en="Drag/Click to place ships. Press 'R' or use the 'Rotate' button to change orientation.">
+                   Drag/Click to place ships. Press 'R' or use the 'Rotate' button to change orientation.
                 </p>
             </div>
 
             <div class="rule-box">
-                <h3 data-tr="Oyun Modları" data-en="Game Modes">Game Modes</h3>
-                <ul>
-                    <li data-tr="PvC: Yapay zekaya karşı yarışın. En az hamle ve sürede bitirmeye çalışın." 
-                        data-en="PvC: Race against the Tactical AI. Try to finish with minimal moves and time.">
-                        PvC: Race against the Tactical AI.
-                    </li>
-                    <li data-tr="PvP: Arkadaşınızla aynı cihazda sırayla oynayın." 
-                        data-en="PvP: Pass-and-play with a friend on the same device.">
-                        PvP: Pass-and-play with a friend.
-                    </li>
-                </ul>
-            </div>
-
-            <div class="rule-box">
                 <h3 data-tr="Puanlama" data-en="Scoring">Scoring</h3>
-                <p data-tr="İsabet: +10 Puan | Batırma: +10 Ekstra Puan. Lider tablosu en az hamle sayısına göre sıralanır." 
-                   data-en="Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves first.">
-                   Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves first.
+                <p data-tr="İsabet: +10 Puan | Batırma: +10 Ekstra Puan. En az hamle ve sürede bitiren lider olur." 
+                   data-en="Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves & fastest time.">
+                   Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves & fastest time.
                 </p>
             </div>
 
@@ -95,7 +81,8 @@
                         <th data-tr="Süre" data-en="Time">Time</th>
                     </tr>
                 </thead>
-                <tbody id="leaderboard-body"></tbody>
+                <tbody id="leaderboard-body">
+                    </tbody>
             </table>
         </div>
         <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;" data-tr="GERİ" data-en="BACK">BACK</button>
@@ -226,9 +213,20 @@
         <div class="modal-content">
             <i class="fas fa-medal fa-3x" id="end-icon" style="color: gold; margin-bottom: 15px;"></i>
             <h2 id="winner-title">VICTORY!</h2>
-            <p class="result-detail"><span data-tr="Kazanan:" data-en="Winner:">Winner:</span> <strong id="winner-name">Player</strong></p>
-            <p class="result-detail highlight"><span data-tr="Toplam Hamle:" data-en="Total Moves:">Total Moves:</span> <strong id="winner-moves">0</strong></p>
-            <p class="result-detail"><span data-tr="Puan:" data-en="Score:">Score:</span> <strong id="winner-score">0</strong></p>
+            
+            <p class="result-detail">
+                <span data-tr="Kazanan:" data-en="Winner:">Winner:</span> 
+                <strong id="winner-name">Player</strong>
+            </p>
+            <p class="result-detail highlight">
+                <span data-tr="Toplam Hamle:" data-en="Total Moves:">Total Moves:</span> 
+                <strong id="winner-moves">0</strong>
+            </p>
+            <p class="result-detail">
+                <span data-tr="Puan:" data-en="Score:">Score:</span> 
+                <strong id="winner-score">0</strong>
+            </p>
+            
             <div class="modal-actions">
                 <button class="btn btn-primary" onclick="restartGame()" data-tr="TEKRAR OYNA" data-en="PLAY AGAIN">PLAY AGAIN</button>
                 <button class="btn btn-danger" onclick="quitGame()" data-tr="ANA MENÜ" data-en="MAIN MENU">MAIN MENU</button>
