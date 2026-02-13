@@ -1,48 +1,39 @@
 /* =========================================
-   1. TACTICAL THEME & VARIABLES
+   BATTLESHIP ELITE: ULTIMATE EDITION
    ========================================= */
+
 :root {
-  /* -- Palette: Deep Ocean Tactical -- */
-  --bg-color: #0b1622;
-  --panel-bg: rgba(21, 34, 50, 0.95);
-  --text-primary: #ecf0f1;
-  --text-secondary: #8a9ba8;
+  /* --- Core Palette --- */
+  --bg-dark: #050b14;
+  --bg-panel: rgba(16, 32, 48, 0.85); /* Glass effect */
+  --grid-base: #0a1520;
+  --grid-line: rgba(64, 169, 255, 0.15);
   
-  /* -- Status Colors -- */
-  --accent-color: #3498db;   /* Radar Blue */
-  --accent-hover: #2980b9;
-  --danger-color: #e74c3c;   /* Hit / Alert */
-  --success-color: #27ae60;  /* Win / Safe */
-  --warning-color: #f39c12;  /* Gold / High Score */
+  /* --- Functional Colors --- */
+  --primary: #00d2ff;       /* Cyan Neon */
+  --primary-dim: #007acc;
+  --success: #00ff9d;       /* Bright Green */
+  --danger: #ff4d4d;        /* Bright Red */
+  --warning: #ffbf00;       /* Amber */
+  --text-main: #e6f1ff;
+  --text-muted: #8b9bb4;
 
-  /* -- Grid System -- */
-  --grid-line: rgba(52, 152, 219, 0.2);
-  --cell-water: rgba(52, 152, 219, 0.05);
-  --cell-hover: rgba(52, 152, 219, 0.3);
-  --cell-size: 38px;
-
-  /* -- Ship Styles -- */
-  --ship-hull: #7f8c8d;
-  --ship-border: 1px solid rgba(255,255,255,0.2);
-
-  /* -- FX -- */
-  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-hard: 0 8px 24px rgba(0, 0, 0, 0.6);
-}
-
-/* Light Mode Overrides */
-body.light-mode {
-  --bg-color: #f0f4f8;
-  --panel-bg: #ffffff;
-  --text-primary: #2c3e50;
-  --text-secondary: #7f8c8d;
-  --grid-line: rgba(44, 62, 80, 0.15);
-  --cell-water: #e1e8ed;
-  --ship-hull: #95a5a6;
+  /* --- Game Pieces --- */
+  --water: rgba(64, 169, 255, 0.05);
+  --water-hover: rgba(64, 169, 255, 0.15);
+  --ship-body: #5c7c99;
+  --ship-border: 1px solid rgba(255, 255, 255, 0.3);
+  
+  /* --- Effects --- */
+  --shadow-panel: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  --glow-primary: 0 0 15px rgba(0, 210, 255, 0.4);
+  --glow-danger: 0 0 15px rgba(255, 77, 77, 0.5);
+  --blur: blur(12px);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* =========================================
-   2. CORE LAYOUT
+   1. GLOBAL RESET & TYPOGRAPHY
    ========================================= */
 * {
   box-sizing: border-box;
@@ -53,485 +44,445 @@ body.light-mode {
 }
 
 body {
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-primary);
+  font-family: 'Rajdhani', 'Segoe UI', sans-serif; /* Tactical Font */
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(circle at 50% 0%, #1a2c42 0%, transparent 70%),
+    linear-gradient(0deg, rgba(0,0,0,0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.2) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  color: var(--text-main);
   height: 100vh;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: background 0.3s;
 }
 
-/* Screen Management */
+/* Scrollbar Styling */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--primary-dim); border-radius: 4px; }
+
+/* =========================================
+   2. SCREEN MANAGEMENT
+   ========================================= */
 .screen {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   z-index: 10;
-  background: var(--bg-color);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  overflow-y: auto; /* Allow scrolling for rules/leaderboard */
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  padding: 20px;
 }
 
 .hidden {
   opacity: 0;
   pointer-events: none;
+  transform: scale(0.95);
   z-index: -1;
-  transform: scale(0.98);
 }
 
 /* =========================================
-   3. MAIN MENU & CREDITS
+   3. MAIN MENU
    ========================================= */
-#main-menu {
-  justify-content: center;
-  background: radial-gradient(circle at center, #1a2a3a 0%, var(--bg-color) 100%);
-}
-
 .game-title {
-  font-size: 4rem;
+  font-size: 5rem;
   font-weight: 900;
-  letter-spacing: 8px;
-  background: linear-gradient(to right, var(--accent-color), #fff);
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #fff 0%, #8ab 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  margin-bottom: 0.5rem;
-  text-align: center;
+  filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.3));
+  margin-bottom: 0;
+  line-height: 1;
 }
 
 .subtitle {
   font-size: 1.2rem;
-  color: var(--text-secondary);
-  letter-spacing: 4px;
+  letter-spacing: 6px;
+  color: var(--primary);
+  margin-bottom: 4rem;
   text-transform: uppercase;
-  margin-bottom: 3rem;
-  border-bottom: 1px solid var(--accent-color);
-  padding-bottom: 10px;
+  border-bottom: 1px solid var(--primary-dim);
+  padding-bottom: 15px;
+  width: 300px;
+  text-align: center;
 }
 
 .menu-buttons {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  width: 300px;
-  z-index: 5;
+  gap: 1.2rem;
+  width: 320px;
 }
 
-/* CREDITS FOOTER */
-.credits {
+/* =========================================
+   4. UI PANELS (Glassmorphism)
+   ========================================= */
+.panel-glass {
+  background: var(--bg-panel);
+  backdrop-filter: var(--blur);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-panel);
+  border-radius: 12px;
+}
+
+/* HUD Header */
+.game-header {
+  width: 100%;
+  max-width: 1100px;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.game-header::after {
+  content: '';
   position: absolute;
-  bottom: 20px;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  text-align: center;
+  bottom: 0; left: 20px; right: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-dim), transparent);
 }
 
-.credits a {
-  color: var(--accent-color);
-  text-decoration: none;
-  font-weight: bold;
-  margin-left: 5px;
-  transition: color 0.2s;
+/* Stats Boxes */
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
 }
 
-.credits a:hover {
-  color: #fff;
-  text-decoration: underline;
-}
-
-/* =========================================
-   4. HOW TO PLAY SCREEN
-   ========================================= */
-.rules-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  width: 90%;
-  max-width: 1000px;
-  margin-top: 2rem;
-}
-
-.rule-box {
-  background: var(--panel-bg);
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--grid-line);
-  box-shadow: var(--shadow-soft);
-}
-
-.rule-box h3 {
-  color: var(--accent-color);
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 5px;
-}
-
-.rule-box p, .rule-box ul {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-
-.rule-box ul {
-  padding-left: 20px;
-}
-
-.rule-box li {
-  margin-bottom: 8px;
-}
-
-/* =========================================
-   5. TACTICAL SPLIT HEADER (GAME HUD)
-   ========================================= */
-.game-header-tactical {
-    width: 95%;
-    max-width: 1200px;
-    background: var(--panel-bg);
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--grid-line);
-    margin-top: 10px;
-    border-radius: 8px;
-    box-shadow: var(--shadow-soft);
-}
-
-.player-stat-box {
-    display: flex;
-    flex-direction: column;
-    width: 220px;
-    padding: 10px;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid var(--grid-line);
-    border-radius: 6px;
-    opacity: 0.5;
-    transition: all 0.3s ease;
-}
-
-/* Highlight Active Turn */
-.player-stat-box.active {
-    opacity: 1;
-    border-color: var(--accent-color);
-    background: rgba(52, 152, 219, 0.1);
-    box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
-    transform: scale(1.02);
-}
-
-.stat-name {
-    font-weight: bold;
-    color: var(--accent-color);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 2px;
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .stat-value {
-    color: var(--text-primary);
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+  font-family: 'Courier New', monospace;
 }
 
-.center-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+.turn-indicator {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(90deg, transparent, rgba(0, 210, 255, 0.2), transparent);
+  padding: 5px 30px;
+  border-top: 1px solid var(--primary-dim);
+  border-bottom: 1px solid var(--primary-dim);
+  animation: pulse-turn 2s infinite;
 }
 
-.turn-badge {
-    background: var(--accent-color);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    white-space: nowrap;
-}
-
-.control-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-icon-small {
-    background: transparent;
-    border: 1px solid var(--text-secondary);
-    color: var(--text-secondary);
-    border-radius: 4px;
-    padding: 6px 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-icon-small:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border-color: white;
-}
+@keyframes pulse-turn { 0% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 10px var(--primary); } 100% { opacity: 0.7; } }
 
 /* =========================================
-   6. BATTLEFIELD & GRIDS
+   5. BATTLEFIELD & GRID
    ========================================= */
 .battlefield {
   display: flex;
-  gap: 3rem;
-  padding: 1rem;
+  gap: 4rem;
   justify-content: center;
   align-items: flex-start;
-  width: 100%;
-  max-width: 1200px;
-  margin-top: 1rem;
+  perspective: 1000px;
 }
 
-.board-container {
+.board-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
-.board-label {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  letter-spacing: 1px;
+.board-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 2px;
   text-transform: uppercase;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(10, var(--cell-size));
-  grid-template-rows: repeat(10, var(--cell-size));
-  gap: 1px;
-  background-color: var(--grid-line);
-  border: 2px solid var(--grid-line);
-  box-shadow: var(--shadow-hard);
-}
-
-.interactive-grid .cell:not(.hit):not(.miss):hover {
-  background-color: var(--cell-hover);
-  cursor: crosshair;
-}
-
-.cell {
-  background-color: var(--cell-water);
+  grid-template-columns: repeat(10, 36px);
+  grid-template-rows: repeat(10, 36px);
+  gap: 2px;
+  background: var(--grid-base);
+  border: 1px solid var(--primary-dim);
+  padding: 4px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   position: relative;
-  transition: background-color 0.2s;
-  overflow: hidden;
 }
 
-/* Ship/Hit/Miss Logic */
-.cell.ship { background-color: var(--ship-hull); border: var(--ship-border); }
-.cell.hit { background-color: var(--danger-color) !important; animation: pop 0.2s; }
-.cell.hit::after { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; }
-.cell.miss { background-color: rgba(255,255,255,0.1) !important; animation: fade 0.3s; }
-.cell.miss::after { content: '•'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); font-size: 20px; }
-.cell.sunk { background-color: #222 !important; border-color: var(--danger-color); opacity: 0.8; }
-.cell.preview { background-color: rgba(52, 152, 219, 0.5); }
-.cell.invalid { background-color: rgba(231, 76, 60, 0.5); cursor: not-allowed; }
+/* Grid overlay effect */
+.grid::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(rgba(0, 210, 255, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 210, 255, 0.03) 1px, transparent 1px);
+  background-size: 38px 38px;
+  pointer-events: none;
+}
+
+/* Cells */
+.cell {
+  background: var(--water);
+  position: relative;
+  transition: background 0.2s, transform 0.1s;
+  cursor: default;
+}
+
+/* Interactive Enemy Grid */
+.interactive .cell:not(.hit):not(.miss):hover {
+  background: var(--water-hover);
+  cursor: crosshair;
+  box-shadow: inset 0 0 10px var(--primary-dim);
+}
+
+/* Cell States */
+.cell.ship {
+  background: var(--ship-body);
+  border: var(--ship-border);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.cell.hit {
+  background: var(--danger) !important;
+  box-shadow: 0 0 15px var(--danger);
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+  z-index: 2;
+}
+
+.cell.miss {
+  background: rgba(255, 255, 255, 0.1) !important;
+  animation: fade-in 0.5s;
+}
+
+.cell.sunk {
+  background: #2a0a0a !important;
+  border: 1px solid var(--danger);
+  opacity: 0.6;
+}
+
+/* Hit/Miss Markers */
+.cell.hit::after {
+  content: '✕';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.cell.miss::after {
+  content: '•';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 2rem;
+}
+
+/* Preview during Placement */
+.cell.preview { background: rgba(0, 255, 157, 0.4); }
+.cell.invalid { background: rgba(255, 77, 77, 0.4); cursor: not-allowed; }
 
 /* =========================================
-   7. BUTTONS & DEPLOYMENT HEADER
+   6. CONTROLS & BUTTONS
    ========================================= */
-.game-header {
-    width: 95%;
-    max-width: 800px;
-    background: var(--panel-bg);
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--grid-line);
-    margin-top: 10px;
-    border-radius: 8px;
-    box-shadow: var(--shadow-soft);
-}
-
 .btn {
-  padding: 14px 24px;
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 12px 24px;
   font-size: 1rem;
   font-weight: 700;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  border: none;
-  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
-  width: 100%;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 
-.btn-primary { background: var(--accent-color); color: white; box-shadow: 0 4px 0 #206bad; }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #206bad; }
-.btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #206bad; }
+.btn:hover {
+  background: rgba(0, 210, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+  text-shadow: 0 0 5px var(--primary);
+}
 
-.btn-secondary { background: transparent; border: 2px solid var(--text-secondary); color: var(--text-secondary); }
-.btn-secondary:hover { border-color: var(--text-primary); color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-dim) 0%, var(--primary) 100%);
+  color: #000;
+  border: none;
+  font-weight: 900;
+}
 
-.btn-success { background: var(--success-color); color: white; }
-.btn-danger { background: var(--danger-color); color: white; }
-.btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; }
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary) 0%, #fff 100%);
+  box-shadow: 0 0 20px var(--primary);
+}
 
-/* Disabled State */
-.btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
+/* Disabled Start Button - Crucial Logic */
+.btn:disabled, .btn.disabled {
+  background: #1a2c42;
+  color: #4a5c72;
+  border-color: #2a3c52;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  filter: grayscale(1);
+}
+
+/* Controls Container */
+.controls-bar {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.btn-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+  clip-path: none; /* Override polygon */
+}
+
+.btn-icon:hover {
+  color: white;
+  border-color: white;
+  background: rgba(255,255,255,0.1);
+}
 
 /* =========================================
-   8. SETTINGS & INPUTS
+   7. DEPLOYMENT AREA
    ========================================= */
-.settings-group {
+.dockyard {
+  width: 300px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dock-ship {
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  width: 100%;
+  transition: 0.2s;
 }
 
-/* Volume Slider */
-input[type=range] {
-  -webkit-appearance: none;
-  width: 120px;
-  height: 6px;
-  background: var(--grid-line);
-  border-radius: 3px;
-  outline: none;
+.dock-ship:hover { background: rgba(255, 255, 255, 0.1); }
+.dock-ship.selected {
+  border-color: var(--primary);
+  background: rgba(0, 210, 255, 0.1);
+  box-shadow: inset 3px 0 0 var(--primary);
 }
-
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  background: var(--accent-color);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-input[type=range]::-webkit-slider-thumb:hover {
-  background: #fff;
-}
-
-/* Input Fields */
-.input-group { margin-bottom: 1.5rem; width: 100%; text-align: left; }
-.input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; }
-.input-group input { 
-    width: 100%; padding: 10px; background: rgba(0,0,0,0.3); 
-    border: 1px solid var(--grid-line); color: #fff; border-radius: 4px; 
+.dock-ship.placed {
+  opacity: 0.4;
+  text-decoration: line-through;
+  pointer-events: none;
 }
 
 /* =========================================
-   9. LEADERBOARD TABLE
+   8. MODALS (Settings, GameOver)
    ========================================= */
-.leaderboard-container {
-    max-height: 50vh;
-    overflow-y: auto;
-    width: 100%;
-    margin: 20px 0;
-    border: 1px solid var(--grid-line);
-    border-radius: 8px;
-}
-
-.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: rgba(0,0,0,0.2);
-}
-
-.leaderboard-table th, .leaderboard-table td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.leaderboard-table th {
-    background: rgba(52, 152, 219, 0.2);
-    color: var(--accent-color);
-    position: sticky;
-    top: 0;
-}
-
-.leaderboard-table tr:nth-child(even) {
-    background: rgba(255,255,255,0.03);
-}
-
-/* =========================================
-   10. MODALS & DEPLOYMENT
-   ========================================= */
-.modal {
+.modal-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 100;
-  backdrop-filter: blur(5px);
 }
 
-.modal-content {
-  background: var(--panel-bg);
-  padding: 3rem;
-  border-radius: 8px;
-  border: 1px solid var(--grid-line);
+.modal-box {
+  width: 450px;
+  padding: 40px;
   text-align: center;
-  width: 90%;
-  max-width: 500px;
+  border: 1px solid var(--primary-dim);
   box-shadow: 0 0 50px rgba(0,0,0,0.8);
 }
 
-.dockyard {
-  background: var(--panel-bg);
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--grid-line);
-  min-width: 200px;
+.modal-title {
+  color: var(--primary);
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
 }
 
-.dock-ship {
-  padding: 8px;
-  background: rgba(255,255,255,0.05);
-  margin-bottom: 5px;
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Range Slider */
+input[type=range] {
+  -webkit-appearance: none;
+  background: transparent;
+  width: 50%;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px; width: 16px;
+  border-radius: 50%;
+  background: var(--primary);
   cursor: pointer;
-  border-left: 3px solid transparent;
+  margin-top: -6px;
 }
-.dock-ship:hover { background: rgba(255,255,255,0.1); }
-.dock-ship.selected { border-left-color: var(--accent-color); background: rgba(52,152,219,0.1); }
-.dock-ship.placed { opacity: 0.5; text-decoration: line-through; pointer-events: none; }
-
-/* Transition Screen */
-#transition-screen { background: #000; z-index: 200; }
-.transition-content { text-align: center; }
-.highlight-text { font-size: 3rem; color: var(--accent-color); margin: 20px 0; }
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%; height: 4px;
+  background: rgba(255,255,255,0.2);
+}
 
 /* =========================================
-   11. ANIMATIONS & RESPONSIVE
+   9. ANIMATIONS
    ========================================= */
-@keyframes pop { 0% { transform: scale(0.5); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
-@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
 
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* =========================================
+   10. RESPONSIVE
+   ========================================= */
 @media (max-width: 900px) {
-    :root { --cell-size: 30px; }
-    .battlefield { flex-direction: column; align-items: center; gap: 2rem; }
-    .game-header-tactical { flex-direction: column; gap: 15px; }
-    .player-stat-box { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
-    .center-controls { flex-direction: row; }
+  .battlefield { flex-direction: column; align-items: center; gap: 2rem; }
+  .grid { grid-template-columns: repeat(10, 30px); grid-template-rows: repeat(10, 30px); }
+  .game-title { font-size: 3rem; }
+  .dockyard { width: 100%; max-width: 320px; }
 }
