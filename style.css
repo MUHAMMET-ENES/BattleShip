@@ -28,7 +28,6 @@
   /* -- FX -- */
   --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-hard: 0 8px 24px rgba(0, 0, 0, 0.6);
-  --glow: 0 0 10px rgba(52, 152, 219, 0.5);
 }
 
 /* Light Mode Overrides */
@@ -76,6 +75,7 @@ body {
   z-index: 10;
   background: var(--bg-color);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  overflow-y: auto; /* Allow scrolling for rules/leaderboard */
 }
 
 .hidden {
@@ -86,7 +86,7 @@ body {
 }
 
 /* =========================================
-   3. MAIN MENU
+   3. MAIN MENU & CREDITS
    ========================================= */
 #main-menu {
   justify-content: center;
@@ -102,6 +102,7 @@ body {
   -webkit-text-fill-color: transparent;
   text-shadow: 0 10px 30px rgba(0,0,0,0.5);
   margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .subtitle {
@@ -114,412 +115,81 @@ body {
   padding-bottom: 10px;
 }
 
-.highscore-badge {
-  position: absolute;
-  top: 30px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--warning-color);
-  font-weight: bold;
-  font-size: 1.1rem;
-  background: rgba(243, 156, 18, 0.1);
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(243, 156, 18, 0.3);
-}
-
 .menu-buttons {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   width: 300px;
+  z-index: 5;
 }
 
-/* =========================================
-   4. BUTTONS
-   ========================================= */
-.btn {
-  padding: 14px 24px;
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-primary {
-  background: var(--accent-color);
-  color: white;
-  box-shadow: 0 4px 0 #206bad; /* 3D effect */
-}
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #206bad;
-}
-.btn-primary:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #206bad;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 2px solid var(--text-secondary);
+/* CREDITS */
+.credits {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-}
-.btn-secondary:hover {
-  border-color: var(--text-primary);
-  color: var(--text-primary);
-  background: rgba(255,255,255,0.05);
+  text-align: center;
 }
 
-.btn-success { background: var(--success-color); color: white; }
-.btn-danger { background: var(--danger-color); color: white; }
-
-.btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.btn-icon {
-  background: transparent;
-  color: var(--text-secondary);
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
+.credits a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: bold;
+  margin-left: 5px;
   transition: color 0.2s;
 }
-.btn-icon:hover { color: var(--accent-color); background: rgba(255,255,255,0.05); }
+
+.credits a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
 
 /* =========================================
-   5. BATTLE SCREEN & HUD
+   4. HOW TO PLAY SCREEN
    ========================================= */
-.game-header {
-  width: 95%;
-  max-width: 1200px;
-  background: var(--panel-bg);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid var(--grid-line);
-  box-shadow: var(--shadow-soft);
-  margin-top: 1rem;
-  border-radius: 8px;
-  z-index: 20;
-}
-
-.header-center {
-  text-align: center;
-}
-
-.turn-badge {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  letter-spacing: 1px;
-}
-
-#turn-status {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--accent-color);
-}
-
-.score-board {
-  display: flex;
-  gap: 20px;
-  margin-left: 15px;
-  padding-left: 15px;
-  border-left: 1px solid var(--text-secondary);
-}
-
-.hud-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.hud-label {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-}
-
-#score-display {
-  font-size: 1.4rem;
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-}
-
-/* OBJECTIVE BADGE */
-.objective-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--danger-color);
-  border: 1px solid var(--danger-color);
-  padding: 5px 12px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
-
-/* =========================================
-   6. BATTLEFIELD (Fixed Layout)
-   ========================================= */
-.battlefield {
-  display: flex;
-  gap: 4rem;
-  padding: 2rem;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  max-width: 1200px;
-}
-
-/* This ensures the containers don't shrink or move */
-.board-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  min-width: calc(var(--cell-size) * 10 + 4px);
-}
-
-.board-label {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-
-/* --- THE GRID --- */
-.grid {
+.rules-container {
   display: grid;
-  grid-template-columns: repeat(10, var(--cell-size));
-  grid-template-rows: repeat(10, var(--cell-size));
-  gap: 1px;
-  background-color: var(--grid-line);
-  border: 2px solid var(--grid-line);
-  box-shadow: var(--shadow-hard);
-}
-
-/* Interactive Grid (Radar) gets specific cursor */
-.interactive-grid .cell:not(.hit):not(.miss):hover {
-  background-color: var(--cell-hover);
-  cursor: crosshair;
-}
-
-/* --- CELLS & ANIMATIONS --- */
-.cell {
-  background-color: var(--cell-water);
-  position: relative;
-  transition: background-color 0.2s;
-  overflow: hidden;
-}
-
-/* SHIP (Visible) */
-.cell.ship {
-  background-color: var(--ship-hull);
-  border: var(--ship-border);
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-}
-
-/* HIT (Red) */
-.cell.hit {
-  background-color: var(--danger-color) !important;
-  animation: shake 0.4s ease-in-out; /* ONLY cell shakes, not screen */
-}
-.cell.hit::after {
-  content: '✕';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-/* MISS (Grey) */
-.cell.miss {
-  background-color: rgba(255,255,255,0.1) !important;
-  animation: splash 0.4s ease-out;
-}
-.cell.miss::after {
-  content: '';
-  width: 8px; height: 8px;
-  background: var(--text-secondary);
-  border-radius: 50%;
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* SUNK (Darker) */
-.cell.sunk {
-  background-color: #222 !important;
-  border-color: var(--danger-color);
-  opacity: 0.8;
-}
-
-/* Deployment Preview */
-.cell.preview { background-color: rgba(52, 152, 219, 0.5); }
-.cell.invalid { background-color: rgba(231, 76, 60, 0.5); cursor: not-allowed; }
-
-/* =========================================
-   7. MODALS & TRANSITIONS
-   ========================================= */
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  backdrop-filter: blur(5px);
-}
-
-.modal-content {
-  background: var(--panel-bg);
-  padding: 3rem;
-  border-radius: 8px;
-  border: 1px solid var(--grid-line);
-  text-align: center;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
   width: 90%;
-  max-width: 450px;
-  box-shadow: 0 0 50px rgba(0,0,0,0.8);
-  animation: slideDown 0.3s ease;
+  max-width: 1000px;
+  margin-top: 2rem;
 }
 
-/* Transition Screen (Curtain) */
-#transition-screen {
-  background: #000;
-  z-index: 200;
-}
-.transition-content { text-align: center; }
-.highlight-text { font-size: 3rem; color: var(--accent-color); margin: 20px 0; }
-
-/* =========================================
-   8. DEPLOYMENT DOCK
-   ========================================= */
-.dockyard {
+.rule-box {
   background: var(--panel-bg);
-  padding: 1.5rem;
+  padding: 20px;
   border-radius: 8px;
   border: 1px solid var(--grid-line);
-  width: 200px;
+  box-shadow: var(--shadow-soft);
 }
 
-.dock-ship {
-  padding: 10px;
-  margin-bottom: 8px;
-  background: rgba(255,255,255,0.05);
-  cursor: pointer;
-  border-left: 4px solid transparent;
-}
-
-.dock-ship:hover { background: rgba(255,255,255,0.1); }
-.dock-ship.selected { border-left-color: var(--accent-color); background: rgba(52, 152, 219, 0.1); }
-.dock-ship.placed { text-decoration: line-through; opacity: 0.5; pointer-events: none; }
-
-/* =========================================
-   9. ANIMATIONS
-   ========================================= */
-@keyframes shake {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-3px, 0); }
-  75% { transform: translate(3px, 0); }
-  100% { transform: translate(0, 0); }
-}
-
-@keyframes splash {
-  0% { transform: scale(0); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes slideDown {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-/* =========================================
-   10. RESPONSIVE (MOBILE)
-   ========================================= */
-@media (max-width: 900px) {
-  :root { --cell-size: 32px; }
-  
-  .game-header {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  
-  .battlefield {
-    flex-direction: column; /* Stack vertically */
-    align-items: center;
-    gap: 2rem;
-  }
-  
-  /* Mobile: Radar on top, Fleet on bottom */
-  #radar-container { order: 1; }
-  #fleet-container { order: 2; transform: scale(0.9); }
-  
-  .score-board { margin-left: 0; padding-left: 0; border: none; }
-}
-
-@media (max-width: 400px) {
-  :root { --cell-size: 28px; }
-  .game-title { font-size: 2.5rem; }
-}
-/* Add to style.css */
-
-.leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background: rgba(0,0,0,0.3);
-}
-
-.leaderboard-table th, .leaderboard-table td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid var(--grid-line);
-}
-
-.leaderboard-table th {
-  background: rgba(52, 152, 219, 0.2);
+.rule-box h3 {
   color: var(--accent-color);
-  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 5px;
 }
 
-.leaderboard-table tr:nth-child(even) {
-  background: rgba(255,255,255,0.05);
+.rule-box p, .rule-box ul {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
-.leaderboard-container {
-  width: 100%;
-  max-width: 600px;
-  max-height: 60vh;
-  overflow-y: auto;
+.rule-box ul {
+  padding-left: 20px;
 }
-/* Add/Replace in style.css */
 
-/* --- TACTICAL HEADER (Split) --- */
+.rule-box li {
+  margin-bottom: 8px;
+}
+
+/* =========================================
+   5. TACTICAL SPLIT HEADER
+   ========================================= */
 .game-header-tactical {
     width: 95%;
     max-width: 1200px;
@@ -531,26 +201,28 @@ body {
     border-bottom: 2px solid var(--grid-line);
     margin-top: 10px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    box-shadow: var(--shadow-soft);
 }
 
 .player-stat-box {
     display: flex;
     flex-direction: column;
-    width: 200px;
+    width: 220px;
     padding: 10px;
     background: rgba(0,0,0,0.2);
     border: 1px solid var(--grid-line);
     border-radius: 6px;
-    opacity: 0.6;
-    transition: all 0.3s;
+    opacity: 0.5;
+    transition: all 0.3s ease;
 }
 
+/* Highlight Active Turn */
 .player-stat-box.active {
     opacity: 1;
     border-color: var(--accent-color);
     background: rgba(52, 152, 219, 0.1);
     box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
+    transform: scale(1.02);
 }
 
 .stat-name {
@@ -559,13 +231,17 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.1);
     margin-bottom: 5px;
     padding-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .stat-row {
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    margin-bottom: 2px;
 }
 
 .stat-value {
@@ -584,11 +260,17 @@ body {
 .turn-badge {
     background: var(--accent-color);
     color: white;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
     font-weight: bold;
     letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.control-buttons {
+    display: flex;
+    gap: 10px;
 }
 
 .btn-icon-small {
@@ -596,17 +278,243 @@ body {
     border: 1px solid var(--text-secondary);
     color: var(--text-secondary);
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 6px 10px;
     cursor: pointer;
+    transition: all 0.2s;
 }
+
 .btn-icon-small:hover {
     background: rgba(255,255,255,0.1);
     color: white;
+    border-color: white;
 }
 
-/* Leaderboard Specifics */
-.leaderboard-hint {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
+/* =========================================
+   6. BATTLEFIELD & GRIDS
+   ========================================= */
+.battlefield {
+  display: flex;
+  gap: 3rem;
+  padding: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 1rem;
+}
+
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(10, var(--cell-size));
+  grid-template-rows: repeat(10, var(--cell-size));
+  gap: 1px;
+  background-color: var(--grid-line);
+  border: 2px solid var(--grid-line);
+  box-shadow: var(--shadow-hard);
+}
+
+.interactive-grid .cell:not(.hit):not(.miss):hover {
+  background-color: var(--cell-hover);
+  cursor: crosshair;
+}
+
+.cell {
+  background-color: var(--cell-water);
+  position: relative;
+  transition: background-color 0.2s;
+  overflow: hidden;
+}
+
+/* Ship/Hit/Miss Logic */
+.cell.ship { background-color: var(--ship-hull); border: var(--ship-border); }
+.cell.hit { background-color: var(--danger-color) !important; animation: pop 0.2s; }
+.cell.hit::after { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; }
+.cell.miss { background-color: rgba(255,255,255,0.1) !important; animation: fade 0.3s; }
+.cell.miss::after { content: '•'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); font-size: 20px; }
+.cell.sunk { background-color: #222 !important; border-color: var(--danger-color); opacity: 0.8; }
+.cell.preview { background-color: rgba(52, 152, 219, 0.5); }
+.cell.invalid { background-color: rgba(231, 76, 60, 0.5); cursor: not-allowed; }
+
+/* =========================================
+   7. BUTTONS & UI
+   ========================================= */
+.btn {
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-primary { background: var(--accent-color); color: white; box-shadow: 0 4px 0 #206bad; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #206bad; }
+.btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #206bad; }
+
+.btn-secondary { background: transparent; border: 2px solid var(--text-secondary); color: var(--text-secondary); }
+.btn-secondary:hover { border-color: var(--text-primary); color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+.btn-success { background: var(--success-color); color: white; }
+.btn-danger { background: var(--danger-color); color: white; }
+.btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+/* =========================================
+   8. SETTINGS & INPUTS
+   ========================================= */
+.settings-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  width: 100%;
+}
+
+/* Volume Slider Styling */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 120px;
+  height: 6px;
+  background: var(--grid-line);
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  background: #fff;
+}
+
+/* Input Fields (Name) */
+.input-group { margin-bottom: 1.5rem; width: 100%; text-align: left; }
+.input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; }
+.input-group input { 
+    width: 100%; padding: 10px; background: rgba(0,0,0,0.3); 
+    border: 1px solid var(--grid-line); color: #fff; border-radius: 4px; 
+}
+
+/* =========================================
+   9. LEADERBOARD TABLE
+   ========================================= */
+.leaderboard-container {
+    max-height: 50vh;
+    overflow-y: auto;
+    width: 100%;
+    margin: 20px 0;
+    border: 1px solid var(--grid-line);
+    border-radius: 8px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0,0,0,0.2);
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.leaderboard-table th {
+    background: rgba(52, 152, 219, 0.2);
+    color: var(--accent-color);
+    position: sticky;
+    top: 0;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background: rgba(255,255,255,0.03);
+}
+
+/* =========================================
+   10. MODALS & DEPLOYMENT
+   ========================================= */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: var(--panel-bg);
+  padding: 3rem;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.dockyard {
+  background: var(--panel-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  min-width: 200px;
+}
+
+.dock-ship {
+  padding: 8px;
+  background: rgba(255,255,255,0.05);
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+.dock-ship:hover { background: rgba(255,255,255,0.1); }
+.dock-ship.selected { border-left-color: var(--accent-color); background: rgba(52,152,219,0.1); }
+.dock-ship.placed { opacity: 0.5; text-decoration: line-through; pointer-events: none; }
+
+/* Transition Screen */
+#transition-screen { background: #000; z-index: 200; }
+.transition-content { text-align: center; }
+.highlight-text { font-size: 3rem; color: var(--accent-color); margin: 20px 0; }
+
+/* =========================================
+   11. ANIMATIONS & RESPONSIVE
+   ========================================= */
+@keyframes pop { 0% { transform: scale(0.5); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 900px) {
+    :root { --cell-size: 30px; }
+    .battlefield { flex-direction: column; align-items: center; gap: 2rem; }
+    .game-header-tactical { flex-direction: column; gap: 15px; }
+    .player-stat-box { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+    .center-controls { flex-direction: row; }
 }
