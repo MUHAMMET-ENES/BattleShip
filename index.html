@@ -38,7 +38,6 @@
     <div id="how-to-play-screen" class="screen hidden">
         <h2 data-tr="NASIL OYNANIR?" data-en="HOW TO PLAY">HOW TO PLAY</h2>
         <div class="rules-container">
-            
             <div class="rule-box">
                 <h3 data-tr="Oyun Amacı" data-en="Objective">Objective</h3>
                 <p data-tr="Rakibinizin tüm gemilerini batırın! Amiral gemisini (5 birim) batıran oyunu anında kazanır." 
@@ -46,44 +45,20 @@
                    Sink all enemy ships! Destroying the Carrier (5-unit) grants an instant victory.
                 </p>
             </div>
-
             <div class="rule-box">
                 <h3 data-tr="Kontroller" data-en="Controls">Controls</h3>
-                <p data-tr="Gemileri sürükleyerek yerleştirin. Yönü değiştirmek için 'R' tuşuna basın veya ekrandaki 'Döndür' butonunu kullanın." 
-                   data-en="Drag/Click to place ships. Press 'R' or use the 'Rotate' button to change orientation.">
-                   Drag/Click to place ships. Press 'R' or use the 'Rotate' button to change orientation.
+                <p data-tr="Gemileri yerleştirin. Yön değiştirmek için 'R' tuşuna basın." 
+                   data-en="Place your ships. Press 'R' to rotate.">
+                   Place your ships. Press 'R' to rotate.
                 </p>
             </div>
-
             <div class="rule-box">
                 <h3 data-tr="Puanlama" data-en="Scoring">Scoring</h3>
-                <p data-tr="İsabet: +10 Puan | Batırma: +10 Ekstra Puan. En az hamle ve sürede bitiren lider olur." 
-                   data-en="Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves & fastest time.">
-                   Hit: +10 Pts | Sink: +10 Bonus Pts. Leaderboard is ranked by fewest moves & fastest time.
+                <p data-tr="İsabet: +10 Puan | Batırma: +10 Ekstra Puan." 
+                   data-en="Hit: +10 Pts | Sink: +10 Bonus Pts.">
+                   Hit: +10 Pts | Sink: +10 Bonus Pts.
                 </p>
             </div>
-
-        </div>
-        <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;" data-tr="GERİ" data-en="BACK">BACK</button>
-    </div>
-
-    <div id="leaderboard-screen" class="screen hidden">
-        <h2 data-tr="EN İYİ KOMUTANLAR" data-en="TOP COMMANDERS">TOP COMMANDERS</h2>
-        <p class="leaderboard-hint" data-tr="(Sıralama: En Az Hamle > En Kısa Süre)" data-en="(Rank: Fewest Moves > Shortest Time)">(Rank: Fewest Moves > Shortest Time)</p>
-        <div class="leaderboard-container">
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th data-tr="İsim" data-en="Name">Name</th>
-                        <th data-tr="Hamle" data-en="Moves">Moves</th>
-                        <th data-tr="Puan" data-en="Score">Score</th>
-                        <th data-tr="Süre" data-en="Time">Time</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboard-body">
-                    </tbody>
-            </table>
         </div>
         <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;" data-tr="GERİ" data-en="BACK">BACK</button>
     </div>
@@ -100,9 +75,9 @@
                 <input type="text" id="p2-name-input" placeholder="Enter Name" maxlength="12">
             </div>
         </div>
-        <div class="action-row">
-            <button class="btn btn-secondary" onclick="backToMenu()" data-tr="GERİ" data-en="BACK">BACK</button>
+        <div class="action-row-vertical">
             <button class="btn btn-primary" onclick="validateAndStart()" data-tr="DEVAM ET" data-en="CONTINUE">CONTINUE</button>
+            <button class="btn btn-secondary" onclick="backToMenu()" data-tr="GERİ" data-en="BACK">BACK</button>
         </div>
     </div>
 
@@ -138,7 +113,6 @@
 
     <div id="game-screen" class="screen hidden">
         <header class="game-header-tactical">
-            
             <div class="player-stat-box active" id="p1-stat-box">
                 <div class="stat-name" id="p1-hud-name">Player 1</div>
                 <div class="stat-row">
@@ -150,7 +124,7 @@
                     <span class="stat-value" id="p1-timer">00:00</span>
                 </div>
             </div>
-
+            
             <div class="center-controls">
                 <div id="turn-indicator" class="turn-badge">YOUR TURN</div>
                 <div class="control-buttons">
@@ -170,7 +144,6 @@
                     <span class="stat-value" id="p2-timer">00:00</span>
                 </div>
             </div>
-
         </header>
 
         <div class="battlefield">
@@ -178,7 +151,6 @@
                 <h3 class="board-label" data-tr="RADAR (Hedef)" data-en="RADAR (Target)">RADAR (Target)</h3>
                 <div id="radar-grid" class="grid interactive-grid"></div>
             </div>
-
             <div class="board-container">
                 <h3 class="board-label" data-tr="FİLONUZ" data-en="YOUR FLEET">YOUR FLEET</h3>
                 <div id="fleet-grid" class="grid status-grid"></div>
@@ -189,44 +161,37 @@
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
             <h2 data-tr="AYARLAR" data-en="SETTINGS">SETTINGS</h2>
-            
             <div class="settings-group">
                 <span data-tr="Dil" data-en="Language">Language</span>
                 <button class="btn btn-sm btn-secondary" onclick="toggleLanguage()">TR / EN</button>
             </div>
-
             <div class="settings-group">
-                <span data-tr="Karanlık Mod" data-en="Dark Mode">Dark Mode</span>
-                <button class="btn btn-sm btn-secondary" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-            </div>
-
-            <div class="settings-group">
-                <span data-tr="Ses Seviyesi" data-en="Volume">Volume</span>
+                <span data-tr="Ses" data-en="Volume">Volume</span>
                 <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1" onchange="setVolume(this.value)">
             </div>
-
             <button class="btn btn-danger" onclick="closeSettings()" data-tr="KAPAT" data-en="CLOSE">CLOSE</button>
         </div>
+    </div>
+
+    <div id="leaderboard-screen" class="screen hidden">
+        <h2 data-tr="LİDER TABLOSU" data-en="LEADERBOARD">LEADERBOARD</h2>
+        <div class="leaderboard-container">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr><th>#</th><th>Name</th><th>Moves</th><th>Score</th><th>Time</th></tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+        <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top:20px">BACK</button>
     </div>
 
     <div id="game-over-modal" class="modal hidden">
         <div class="modal-content">
             <i class="fas fa-medal fa-3x" id="end-icon" style="color: gold; margin-bottom: 15px;"></i>
             <h2 id="winner-title">VICTORY!</h2>
-            
-            <p class="result-detail">
-                <span data-tr="Kazanan:" data-en="Winner:">Winner:</span> 
-                <strong id="winner-name">Player</strong>
-            </p>
-            <p class="result-detail highlight">
-                <span data-tr="Toplam Hamle:" data-en="Total Moves:">Total Moves:</span> 
-                <strong id="winner-moves">0</strong>
-            </p>
-            <p class="result-detail">
-                <span data-tr="Puan:" data-en="Score:">Score:</span> 
-                <strong id="winner-score">0</strong>
-            </p>
-            
+            <p class="result-detail"><span data-tr="Kazanan:" data-en="Winner:">Winner:</span> <strong id="winner-name">Player</strong></p>
+            <p class="result-detail"><span data-tr="Puan:" data-en="Score:">Score:</span> <strong id="winner-score">0</strong></p>
             <div class="modal-actions">
                 <button class="btn btn-primary" onclick="restartGame()" data-tr="TEKRAR OYNA" data-en="PLAY AGAIN">PLAY AGAIN</button>
                 <button class="btn btn-danger" onclick="quitGame()" data-tr="ANA MENÜ" data-en="MAIN MENU">MAIN MENU</button>
