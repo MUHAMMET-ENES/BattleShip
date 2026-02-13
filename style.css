@@ -517,3 +517,96 @@ body {
   max-height: 60vh;
   overflow-y: auto;
 }
+/* Add/Replace in style.css */
+
+/* --- TACTICAL HEADER (Split) --- */
+.game-header-tactical {
+    width: 95%;
+    max-width: 1200px;
+    background: var(--panel-bg);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--grid-line);
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.player-stat-box {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--grid-line);
+    border-radius: 6px;
+    opacity: 0.6;
+    transition: all 0.3s;
+}
+
+.player-stat-box.active {
+    opacity: 1;
+    border-color: var(--accent-color);
+    background: rgba(52, 152, 219, 0.1);
+    box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
+}
+
+.stat-name {
+    font-weight: bold;
+    color: var(--accent-color);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 5px;
+    padding-bottom: 2px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.center-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.turn-badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.btn-icon-small {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.btn-icon-small:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+/* Leaderboard Specifics */
+.leaderboard-hint {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
