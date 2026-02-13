@@ -1,82 +1,537 @@
 /* =========================================
-   STYLE.CSS - PROFESSIONAL EDITION
+   1. TACTICAL THEME & VARIABLES
    ========================================= */
 :root {
+  /* -- Palette: Deep Ocean Tactical -- */
   --bg-color: #0b1622;
   --panel-bg: rgba(21, 34, 50, 0.95);
   --text-primary: #ecf0f1;
   --text-secondary: #8a9ba8;
-  --accent-color: #3498db;
-  --danger-color: #e74c3c;
-  --success-color: #27ae60;
+  
+  /* -- Status Colors -- */
+  --accent-color: #3498db;   /* Radar Blue */
+  --accent-hover: #2980b9;
+  --danger-color: #e74c3c;   /* Hit / Alert */
+  --success-color: #27ae60;  /* Win / Safe */
+  --warning-color: #f39c12;  /* Gold / High Score */
+
+  /* -- Grid System -- */
   --grid-line: rgba(52, 152, 219, 0.2);
   --cell-water: rgba(52, 152, 219, 0.05);
   --cell-hover: rgba(52, 152, 219, 0.3);
   --cell-size: 38px;
+
+  /* -- Ship Styles -- */
   --ship-hull: #7f8c8d;
+  --ship-border: 1px solid rgba(255,255,255,0.2);
+
+  /* -- FX -- */
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-hard: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); color: var(--text-primary); height: 100vh; display: flex; justify-content: center; align-items: center; }
+/* Light Mode Overrides */
+body.light-mode {
+  --bg-color: #f0f4f8;
+  --panel-bg: #ffffff;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --grid-line: rgba(44, 62, 80, 0.15);
+  --cell-water: #e1e8ed;
+  --ship-hull: #95a5a6;
+}
 
-/* Screens */
-.screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; background: var(--bg-color); z-index: 10; overflow-y: auto; }
-.hidden { display: none !important; }
+/* =========================================
+   2. CORE LAYOUT
+   ========================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
-/* Menu */
-#main-menu { justify-content: center; background: radial-gradient(circle, #1a2a3a 0%, var(--bg-color) 100%); }
-.game-title { font-size: 3.5rem; background: linear-gradient(to right, var(--accent-color), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
-.menu-buttons { display: flex; flex-direction: column; gap: 1rem; width: 300px; }
-.credits { position: absolute; bottom: 20px; font-size: 0.9rem; color: var(--text-secondary); }
-.credits a { color: var(--accent-color); text-decoration: none; font-weight: bold; }
+body {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s;
+}
 
-/* Profile - Fixed Layout */
-.action-row-vertical { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; width: 100%; }
-.input-group input { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--grid-line); color: white; border-radius: 4px; }
+/* Screen Management */
+.screen {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  background: var(--bg-color);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  overflow-y: auto; /* Allow scrolling for rules/leaderboard */
+}
 
-/* Deployment */
-.dockyard { background: var(--panel-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--grid-line); min-width: 200px; }
-.dock-ship { padding: 8px; background: rgba(255,255,255,0.05); margin-bottom: 5px; cursor: pointer; border-left: 3px solid transparent; }
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transform: scale(0.98);
+}
+
+/* =========================================
+   3. MAIN MENU & CREDITS
+   ========================================= */
+#main-menu {
+  justify-content: center;
+  background: radial-gradient(circle at center, #1a2a3a 0%, var(--bg-color) 100%);
+}
+
+.game-title {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 8px;
+  background: linear-gradient(to right, var(--accent-color), #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--accent-color);
+  padding-bottom: 10px;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 300px;
+  z-index: 5;
+}
+
+/* CREDITS FOOTER */
+.credits {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.credits a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: bold;
+  margin-left: 5px;
+  transition: color 0.2s;
+}
+
+.credits a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* =========================================
+   4. HOW TO PLAY SCREEN
+   ========================================= */
+.rules-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  width: 90%;
+  max-width: 1000px;
+  margin-top: 2rem;
+}
+
+.rule-box {
+  background: var(--panel-bg);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  box-shadow: var(--shadow-soft);
+}
+
+.rule-box h3 {
+  color: var(--accent-color);
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 5px;
+}
+
+.rule-box p, .rule-box ul {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.rule-box ul {
+  padding-left: 20px;
+}
+
+.rule-box li {
+  margin-bottom: 8px;
+}
+
+/* =========================================
+   5. TACTICAL SPLIT HEADER (GAME HUD)
+   ========================================= */
+.game-header-tactical {
+    width: 95%;
+    max-width: 1200px;
+    background: var(--panel-bg);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--grid-line);
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.player-stat-box {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--grid-line);
+    border-radius: 6px;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+/* Highlight Active Turn */
+.player-stat-box.active {
+    opacity: 1;
+    border-color: var(--accent-color);
+    background: rgba(52, 152, 219, 0.1);
+    box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
+    transform: scale(1.02);
+}
+
+.stat-name {
+    font-weight: bold;
+    color: var(--accent-color);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 5px;
+    padding-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.center-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.turn-badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.control-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon-small {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon-small:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-color: white;
+}
+
+/* =========================================
+   6. BATTLEFIELD & GRIDS
+   ========================================= */
+.battlefield {
+  display: flex;
+  gap: 3rem;
+  padding: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 1rem;
+}
+
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(10, var(--cell-size));
+  grid-template-rows: repeat(10, var(--cell-size));
+  gap: 1px;
+  background-color: var(--grid-line);
+  border: 2px solid var(--grid-line);
+  box-shadow: var(--shadow-hard);
+}
+
+.interactive-grid .cell:not(.hit):not(.miss):hover {
+  background-color: var(--cell-hover);
+  cursor: crosshair;
+}
+
+.cell {
+  background-color: var(--cell-water);
+  position: relative;
+  transition: background-color 0.2s;
+  overflow: hidden;
+}
+
+/* Ship/Hit/Miss Logic */
+.cell.ship { background-color: var(--ship-hull); border: var(--ship-border); }
+.cell.hit { background-color: var(--danger-color) !important; animation: pop 0.2s; }
+.cell.hit::after { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; }
+.cell.miss { background-color: rgba(255,255,255,0.1) !important; animation: fade 0.3s; }
+.cell.miss::after { content: '•'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); font-size: 20px; }
+.cell.sunk { background-color: #222 !important; border-color: var(--danger-color); opacity: 0.8; }
+.cell.preview { background-color: rgba(52, 152, 219, 0.5); }
+.cell.invalid { background-color: rgba(231, 76, 60, 0.5); cursor: not-allowed; }
+
+/* =========================================
+   7. BUTTONS & DEPLOYMENT HEADER
+   ========================================= */
+.game-header {
+    width: 95%;
+    max-width: 800px;
+    background: var(--panel-bg);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--grid-line);
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.btn {
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-primary { background: var(--accent-color); color: white; box-shadow: 0 4px 0 #206bad; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #206bad; }
+.btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #206bad; }
+
+.btn-secondary { background: transparent; border: 2px solid var(--text-secondary); color: var(--text-secondary); }
+.btn-secondary:hover { border-color: var(--text-primary); color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+.btn-success { background: var(--success-color); color: white; }
+.btn-danger { background: var(--danger-color); color: white; }
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; }
+
+/* Disabled State */
+.btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
+
+/* =========================================
+   8. SETTINGS & INPUTS
+   ========================================= */
+.settings-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  width: 100%;
+}
+
+/* Volume Slider */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 120px;
+  height: 6px;
+  background: var(--grid-line);
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  background: #fff;
+}
+
+/* Input Fields */
+.input-group { margin-bottom: 1.5rem; width: 100%; text-align: left; }
+.input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; }
+.input-group input { 
+    width: 100%; padding: 10px; background: rgba(0,0,0,0.3); 
+    border: 1px solid var(--grid-line); color: #fff; border-radius: 4px; 
+}
+
+/* =========================================
+   9. LEADERBOARD TABLE
+   ========================================= */
+.leaderboard-container {
+    max-height: 50vh;
+    overflow-y: auto;
+    width: 100%;
+    margin: 20px 0;
+    border: 1px solid var(--grid-line);
+    border-radius: 8px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0,0,0,0.2);
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.leaderboard-table th {
+    background: rgba(52, 152, 219, 0.2);
+    color: var(--accent-color);
+    position: sticky;
+    top: 0;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background: rgba(255,255,255,0.03);
+}
+
+/* =========================================
+   10. MODALS & DEPLOYMENT
+   ========================================= */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: var(--panel-bg);
+  padding: 3rem;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.dockyard {
+  background: var(--panel-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  min-width: 200px;
+}
+
+.dock-ship {
+  padding: 8px;
+  background: rgba(255,255,255,0.05);
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+.dock-ship:hover { background: rgba(255,255,255,0.1); }
 .dock-ship.selected { border-left-color: var(--accent-color); background: rgba(52,152,219,0.1); }
 .dock-ship.placed { opacity: 0.5; text-decoration: line-through; pointer-events: none; }
 
-/* Game HUD */
-.game-header-tactical { width: 95%; max-width: 1200px; background: var(--panel-bg); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-.player-stat-box { display: flex; flex-direction: column; width: 200px; padding: 10px; border: 1px solid var(--grid-line); border-radius: 6px; opacity: 0.5; transition: 0.3s; }
-.player-stat-box.active { opacity: 1; border-color: var(--accent-color); background: rgba(52,152,219,0.1); transform: scale(1.02); }
-.stat-value { font-family: 'Courier New', monospace; font-weight: bold; color: white; }
-.turn-badge { background: var(--accent-color); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
+/* Transition Screen */
+#transition-screen { background: #000; z-index: 200; }
+.transition-content { text-align: center; }
+.highlight-text { font-size: 3rem; color: var(--accent-color); margin: 20px 0; }
 
-/* Grids */
-.battlefield { display: flex; gap: 3rem; padding: 1rem; margin-top: 1rem; }
-.grid { display: grid; grid-template-columns: repeat(10, var(--cell-size)); gap: 1px; background: var(--grid-line); border: 2px solid var(--grid-line); }
-.cell { background: var(--cell-water); width: var(--cell-size); height: var(--cell-size); position: relative; transition: 0.2s; }
-.interactive-grid .cell:not(.hit):not(.miss):hover { background: var(--cell-hover); cursor: crosshair; }
-
-/* Cell States */
-.cell.ship { background: var(--ship-hull); border: 1px solid rgba(255,255,255,0.2); }
-.cell.hit { background: var(--danger-color) !important; animation: pop 0.2s; } /* Red */
-.cell.miss { background: rgba(255,255,255,0.1) !important; } /* White/Grey */
-.cell.hit::after { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: white; font-weight: bold; }
-.cell.miss::after { content: '•'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ccc; font-size: 20px; }
-.cell.sunk { background: #222 !important; border-color: var(--danger-color); opacity: 0.8; }
-.cell.preview { background: rgba(52,152,219,0.5); }
-.cell.invalid { background: rgba(231,76,60,0.5); cursor: not-allowed; }
-
-/* Buttons */
-.btn { padding: 12px; font-weight: bold; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 5px; }
-.btn-primary { background: var(--accent-color); color: white; }
-.btn-secondary { background: transparent; border: 2px solid var(--text-secondary); color: var(--text-secondary); }
-.btn-success { background: var(--success-color); color: white; }
-.btn-danger { background: var(--danger-color); color: white; }
-.btn.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(1); }
-
+/* =========================================
+   11. ANIMATIONS & RESPONSIVE
+   ========================================= */
 @keyframes pop { 0% { transform: scale(0.5); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Responsive */
 @media (max-width: 900px) {
-  :root { --cell-size: 30px; }
-  .battlefield { flex-direction: column; align-items: center; gap: 1rem; }
-  .game-header-tactical { flex-direction: column; gap: 10px; }
-  .player-stat-box { width: 100%; flex-direction: row; justify-content: space-between; }
+    :root { --cell-size: 30px; }
+    .battlefield { flex-direction: column; align-items: center; gap: 2rem; }
+    .game-header-tactical { flex-direction: column; gap: 15px; }
+    .player-stat-box { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+    .center-controls { flex-direction: row; }
 }
