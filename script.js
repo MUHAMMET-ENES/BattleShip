@@ -1,8 +1,8 @@
 /* =========================================
-   BATTLESHIP ELITE: FINAL JS ENGINE
+   BATTLESHIP ELITE: PROFESSIONAL EDITION
    ========================================= */
 
-/* --- 1. CONFIGURATION --- */
+/* --- 1. CONFIGURATION & TEXTS --- */
 const CONFIG = {
     ships: [
         { name: "Carrier", size: 5 },
@@ -13,56 +13,56 @@ const CONFIG = {
     ],
     scores: {
         hit: 10,
-        sink: 10 // Bonus points for sinking
+        sink: 10 // Bonus points
     }
 };
 
 const TEXTS = {
     en: {
         place: "Deploying:",
-        rotate: "Rotate (R)",
+        rotate: "Rotate (Press 'R')",
         cpu: "TACTICAL AI",
-        turnYou: "YOUR TURN",
-        turnOpp: "OPPONENT'S TURN",
-        win: "VICTORY!",
-        lose: "DEFEAT!",
+        turnYou: "YOUR TURN - AWAITING ORDERS",
+        turnOpp: "ENEMY TURN - EVASIVE MANEUVERS",
+        win: "VICTORY! ENEMY FLEET NEUTRALIZED",
+        lose: "DEFEAT! OUR FLEET IS LOST",
         carrierDown: "HOSTILE CARRIER DESTROYED!",
-        alertName: "Please enter your name!",
-        you: "YOU",
-        enemy: "ENEMY"
+        alertName: "Commander, please identify yourself!",
+        ready: "FLEET READY - AWAITING ORDER",
+        deploying: "DEPLOYING SHIPS..."
     },
     tr: {
         place: "Yerleştir:",
-        rotate: "Döndür (R)",
+        rotate: "Döndür ('R' Tuşu)",
         cpu: "YAPAY ZEKA",
-        turnYou: "SIRA SİZDE",
-        turnOpp: "RAKİBİN SIRASI",
-        win: "ZAFER!",
-        lose: "YENİLGİ!",
+        turnYou: "SIRA SİZDE - EMİR BEKLENİYOR",
+        turnOpp: "DÜŞMAN SIRASI - KAÇINMA MANEVRASI",
+        win: "ZAFER! DÜŞMAN FİLOSU YOK EDİLDİ",
+        lose: "YENİLGİ! FİLOMUZU KAYBETTİK",
         carrierDown: "DÜŞMAN AMİRAL GEMİSİ BATTI!",
-        alertName: "Lütfen isminizi giriniz!",
-        you: "SİZ",
-        enemy: "DÜŞMAN"
+        alertName: "Komutan, lütfen kimliğinizi girin!",
+        ready: "FİLO HAZIR - EMİR BEKLENİYOR",
+        deploying: "GEMİLER YERLEŞTİRİLİYOR..."
     }
 };
 
-/* --- 2. STATE --- */
+/* --- 2. GAME STATE --- */
 const state = {
     lang: localStorage.getItem('lang') || 'en',
     theme: localStorage.getItem('theme') || 'dark',
     volume: parseFloat(localStorage.getItem('volume')) || 1.0,
     
     mode: null,          // 'player' or 'computer'
-    phase: 'menu',       // Current screen
-    turn: 1,             // 1 = Player 1, 2 = Player 2 (or CPU)
-    isLocked: false,     // Input lock (prevent spamming)
+    phase: 'menu',       
+    turn: 1,             // 1 = Player, 2 = CPU/Enemy
+    isLocked: false,     // Prevents clicking during animations
     
     // Timers
     timerInterval: null,
     p1Seconds: 0,
     p2Seconds: 0,
 
-    // AI Memory (Hunt & Target Strategy)
+    // AI Intelligence
     aiTargetStack: [], 
     
     // Deployment
@@ -72,12 +72,12 @@ const state = {
     p1Buffer: [],
     p2Buffer: [],
 
-    // Players
+    // Player Objects
     p1: createPlayer(),
     p2: createPlayer()
 };
 
-/* --- 3. DOM ELEMENTS --- */
+/* --- 3. DOM CACHE --- */
 const DOM = {
     screens: {
         menu: document.getElementById('main-menu'),
@@ -114,10 +114,10 @@ const DOM = {
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     updateText();
-    initVolume(); // Set initial volume
+    initVolume();
     attachButtonSounds();
     
-    // Keyboard Shortcuts
+    // Rotation Hotkey (R)
     document.addEventListener('keydown', (e) => {
         if (state.phase === 'deploy' && (e.key === 'r' || e.key === 'R')) {
             rotateShip();
@@ -137,11 +137,7 @@ function attachButtonSounds() {
 
 /* --- 5. NAVIGATION --- */
 function switchScreen(name) {
-    // Hide all screens
-    Object.values(DOM.screens).forEach(s => {
-        if(s) s.classList.add('hidden');
-    });
-    // Show target
+    Object.values(DOM.screens).forEach(s => { if(s) s.classList.add('hidden'); });
     if(DOM.screens[name]) DOM.screens[name].classList.remove('hidden');
     state.phase = name;
 }
@@ -149,15 +145,13 @@ function switchScreen(name) {
 function showProfileScreen(mode) {
     state.mode = mode;
     document.getElementById('p2-input-group').style.display = (mode === 'computer') ? 'none' : 'block';
-    // Clear inputs
+    // Clear previous inputs
     document.getElementById('p1-name-input').value = "";
     document.getElementById('p2-name-input').value = "";
     switchScreen('profile');
 }
 
-function showHowToPlay() {
-    switchScreen('howToPlay');
-}
+function showHowToPlay() { switchScreen('howToPlay'); }
 
 function validateAndStart() {
     const p1Name = document.getElementById('p1-name-input').value.trim();
@@ -167,11 +161,11 @@ function validateAndStart() {
     if (!p1Name) { alert(t.alertName); return; }
     if (state.mode === 'player' && !p2Name) { alert(t.alertName); return; }
 
-    // Init Players
+    // Init Data
     state.p1 = createPlayer(); state.p1.name = p1Name;
     state.p2 = createPlayer(); state.p2.name = (state.mode === 'computer') ? t.cpu : p2Name;
     
-    // Reset State
+    // Reset Logic
     state.aiTargetStack = [];
     state.p1Seconds = 0; state.p2Seconds = 0;
     state.p1Buffer = []; state.p2Buffer = [];
@@ -181,7 +175,7 @@ function validateAndStart() {
     switchScreen('deploy');
 }
 
-/* --- 6. DEPLOYMENT LOGIC --- */
+/* --- 6. DEPLOYMENT SYSTEM --- */
 function setupDeployUI() {
     state.selectedShipIdx = 0;
     const isP1 = state.deployingPlayer === 1;
@@ -189,11 +183,14 @@ function setupDeployUI() {
     const t = TEXTS[state.lang];
 
     document.getElementById('deploy-player-title').textContent = `${t.place} ${name}`;
-    document.getElementById('deploy-status').textContent = "";
-    document.getElementById('btn-start-battle').classList.add('disabled');
-    document.getElementById('btn-start-battle').disabled = true;
+    document.getElementById('deploy-status').textContent = t.deploying;
+    
+    // **FIX**: Button starts disabled
+    const btn = document.getElementById('btn-start-battle');
+    btn.classList.add('disabled');
+    btn.disabled = true;
 
-    // Build Dock
+    // Populate Dock
     const dock = document.getElementById('ship-dock');
     dock.innerHTML = '';
     CONFIG.ships.forEach((ship, i) => {
@@ -210,7 +207,6 @@ function setupDeployUI() {
     for(let i=0; i<100; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        // Event Listeners for placement
         cell.onmouseenter = () => previewShip(i);
         cell.onmouseleave = () => clearPreview();
         cell.onclick = () => placeShip(i);
@@ -220,22 +216,26 @@ function setupDeployUI() {
 
 function selectShipIdx(i) {
     state.selectedShipIdx = i;
-    document.querySelectorAll('.dock-ship').forEach(d => d.classList.remove('selected'));
-    document.getElementById('ship-dock').children[i].classList.add('selected');
+    // UI Update
+    Array.from(document.getElementById('ship-dock').children).forEach((el, idx) => {
+        if(idx === i) el.classList.add('selected');
+        else el.classList.remove('selected');
+    });
 }
 
 function rotateShip() {
     playSound('menu');
     state.isHorizontal = !state.isHorizontal;
     
-    // FIX: Re-render preview immediately if mouse is hovering
-    // We find the currently hovered cell and re-trigger preview
+    // Instant Visual Update
     const hovered = document.querySelector('#deploy-grid .cell:hover');
     if (hovered) {
         clearPreview();
-        // Calculate index based on child position
-        const index = Array.prototype.indexOf.call(hovered.parentNode.children, hovered);
-        previewShip(index);
+        // Calculate index by counting previous siblings
+        let idx = 0;
+        let el = hovered;
+        while((el = el.previousSibling) != null) idx++;
+        previewShip(idx);
     }
 }
 
@@ -245,10 +245,10 @@ function getCoords(idx, size, horiz) {
     const coords = [];
     for(let i=0; i<size; i++) {
         if(horiz) {
-            if(x + i > 9) return null; // Out of bounds
+            if(x + i > 9) return null; 
             coords.push(idx + i);
         } else {
-            if(y + i > 9) return null; // Out of bounds
+            if(y + i > 9) return null; 
             coords.push(idx + (i * 10));
         }
     }
@@ -263,7 +263,6 @@ function previewShip(idx) {
     const grid = document.getElementById('deploy-grid');
     
     if (coords) {
-        // Check collision
         const valid = !coords.some(c => buffer.some(s => s.coords.includes(c)));
         coords.forEach(c => {
             if(grid.children[c]) grid.children[c].classList.add(valid ? 'preview' : 'invalid');
@@ -276,35 +275,41 @@ function clearPreview() {
 }
 
 function placeShip(idx) {
+    // Prevent placing if all ships are done
     if(state.selectedShipIdx >= CONFIG.ships.length) return;
+
     const ship = CONFIG.ships[state.selectedShipIdx];
     const coords = getCoords(idx, ship.size, state.isHorizontal);
     const buffer = state.deployingPlayer === 1 ? state.p1Buffer : state.p2Buffer;
 
+    // Collision Check
     if(!coords || coords.some(c => buffer.some(s => s.coords.includes(c)))) { 
-        playSound('menu'); // Error sound
+        playSound('menu'); 
         return; 
     }
 
-    playSound('menu'); // Success sound
+    playSound('menu');
     buffer.push({ ...ship, coords, hits: 0 });
     
-    // Mark on Grid
+    // Draw on Grid
     const grid = document.getElementById('deploy-grid');
     coords.forEach(c => grid.children[c].classList.add('ship'));
     
-    // Mark on Dock
+    // Update Dock UI
     const dock = document.getElementById('ship-dock');
     dock.children[state.selectedShipIdx].classList.add('placed');
     dock.children[state.selectedShipIdx].classList.remove('selected');
 
     state.selectedShipIdx++;
+
+    // **FIX**: Check if ALL ships are placed to enable start
     if(state.selectedShipIdx < CONFIG.ships.length) {
         dock.children[state.selectedShipIdx].classList.add('selected');
     } else {
-        document.getElementById('btn-start-battle').classList.remove('disabled');
-        document.getElementById('btn-start-battle').disabled = false;
-        document.getElementById('deploy-status').textContent = "READY!";
+        document.getElementById('deploy-status').textContent = TEXTS[state.lang].ready;
+        const btn = document.getElementById('btn-start-battle');
+        btn.classList.remove('disabled');
+        btn.disabled = false;
     }
 }
 
@@ -344,22 +349,23 @@ function generateRandomShips() {
     return ships;
 }
 
-/* --- 7. BATTLE ENGINE --- */
+/* --- 7. BATTLE LOGIC --- */
 function startBattle() {
     state.turn = 1;
     state.isLocked = false;
     
-    // Setup HUD Names
+    // HUD Setup
     DOM.hud.p1Name.textContent = state.p1.name;
     DOM.hud.p2Name.textContent = state.p2.name;
 
-    // Start Timer
+    // Timer Start
     if (state.timerInterval) clearInterval(state.timerInterval);
     state.timerInterval = setInterval(gameTimerTick, 1000);
 
-    // Initial Grids
-    initBattleGrid('radar-grid', true);
-    initBattleGrid('fleet-grid', false);
+    // Render Boards
+    initBattleGrid('radar-grid', true);  // Left: Target
+    initBattleGrid('fleet-grid', false); // Right: Self
+    
     switchScreen('game');
 
     if(state.mode === 'player') {
@@ -400,26 +406,27 @@ function renderTurn() {
     const t = TEXTS[state.lang];
     const isP1 = state.turn === 1;
 
-    // Highlight active player
+    // 1. Update HUD Highlights
     DOM.hud.p1Box.classList.toggle('active', isP1);
     DOM.hud.p2Box.classList.toggle('active', !isP1);
-    
-    // Update Scores
     DOM.hud.p1Score.textContent = state.p1.score;
     DOM.hud.p2Score.textContent = state.p2.score;
 
     if (state.mode === 'computer') {
+        // PvC Mode
         DOM.hud.turn.textContent = isP1 ? t.turnYou : t.turnOpp;
-        // PvC: Always P1 perspective
-        // Radar (Left): P2 Ships (Hidden), P1 Shots
+        
+        // Left Grid (Radar): Shows P1 shooting at P2
         updateGrid('radar-grid', state.p2.ships, state.p1.shots, true);
-        // Fleet (Right): P1 Ships (Visible), P2 Shots
+        
+        // Right Grid (Fleet): Shows P1 ships and P2 shooting at P1
         updateGrid('fleet-grid', state.p1.ships, state.p2.shots, false);
     } else {
-        // PvP: Perspective swaps
+        // PvP Mode: Swaps perspectives
         const active = isP1 ? state.p1 : state.p2;
         const opponent = isP1 ? state.p2 : state.p1;
         DOM.hud.turn.textContent = t.turnYou;
+        
         updateGrid('radar-grid', opponent.ships, active.shots, true);
         updateGrid('fleet-grid', active.ships, opponent.shots, false);
     }
@@ -429,23 +436,27 @@ function updateGrid(id, ships, shots, hideShips) {
     const grid = document.getElementById(id);
     for(let i=0; i<100; i++) {
         const cell = grid.children[i];
-        // Reset classes but keep base 'cell'
-        cell.className = 'cell';
+        cell.className = 'cell'; // Reset base class
         
         const ship = ships.find(s => s.coords.includes(i));
         const shot = shots.find(s => s.index === i);
 
+        // Draw Ship
         if(ship) {
             const isSunk = ship.hits >= ship.size;
-            // Reveal if my ship OR if sunk
+            // Visible if: It's MY fleet OR It's sunk
             if(!hideShips || isSunk) {
                 cell.classList.add('ship');
                 if(isSunk) cell.classList.add('sunk');
             }
         }
+        
+        // Draw Marks
         if(shot) {
             cell.classList.add(shot.hit ? 'hit' : 'miss');
         }
+        
+        // Interactive Cursor (Only on empty radar cells)
         if(hideShips && !shot) {
             cell.classList.add('interactive');
         }
@@ -453,19 +464,18 @@ function updateGrid(id, ships, shots, hideShips) {
 }
 
 function handleShot(idx) {
-    // 1. Validation checks
+    // Block if locked (animation playing) or transition screen up
     if(state.isLocked || !DOM.screens.transition.classList.contains('hidden')) return;
 
     const p1Turn = state.turn === 1;
     const attacker = p1Turn ? state.p1 : state.p2;
     const defender = p1Turn ? state.p2 : state.p1;
 
-    // Prevent AI turn hijacking
-    if(state.mode === 'computer' && !p1Turn) return; 
-    // Prevent double shooting
-    if(attacker.shots.some(s => s.index === idx)) return;
+    // Safety Checks
+    if(state.mode === 'computer' && !p1Turn) return; // Prevent clicking during CPU turn
+    if(attacker.shots.some(s => s.index === idx)) return; // Already shot
 
-    // 2. Fire!
+    // Lock and Fire
     state.isLocked = true;
     executeFire(idx, attacker, defender);
 }
@@ -484,40 +494,36 @@ function executeFire(idx, attacker, defender) {
         ship.hits++;
         attacker.score += CONFIG.scores.hit;
 
-        // Smart AI: Store neighbors for next shots
+        // **AI MEMORY**: If Computer hits, remember this spot
         if (state.mode === 'computer' && attacker === state.p2) {
             addNeighborsToStack(idx, attacker.shots);
         }
 
-        // Check Sinking
+        // Win Conditions
         if (ship.hits === ship.size) {
-            attacker.score += CONFIG.scores.sink; // Bonus
-            
-            // Carrier (Size 5) = Instant Win Rule
-            if (ship.size === 5) {
-                endGame(attacker, TEXTS[state.lang].carrierDown); 
+            attacker.score += CONFIG.scores.sink;
+            if (ship.size === 5) { // Carrier Rule
+                endGame(attacker, TEXTS[state.lang].carrierDown);
                 return;
             }
         }
-
-        // Check Total Victory
         if (defender.ships.every(s => s.hits >= s.size)) {
             endGame(attacker, TEXTS[state.lang].win);
             return;
         }
 
-        // BONUS TURN Logic (Do not swap)
+        // **HIT = BONUS TURN**
         renderTurn();
         setTimeout(() => {
-            state.isLocked = false; 
-            // If Computer hit, it shoots again
+            state.isLocked = false;
+            // If Computer Hit, it fires again immediately
             if (state.mode === 'computer' && state.turn === 2) {
                 computerAI();
             }
-        }, 800);
+        }, 600); // Short delay for pacing
 
     } else {
-        // MISS Logic (Swap Turn)
+        // **MISS = SWAP TURN**
         renderTurn();
         setTimeout(swapTurn, 800);
     }
@@ -531,17 +537,17 @@ function swapTurn() {
         const nextName = state.turn === 1 ? state.p1.name : state.p2.name;
         showTransition(nextName, renderTurn);
     } else {
-        // PvC: Refresh
+        // PvC Mode
         renderTurn();
-        // If CPU Turn, trigger AI
+        // If it became Computer's turn, trigger AI
         if(state.turn === 2) {
-            state.isLocked = true; // Lock player input
-            setTimeout(computerAI, 500);
+            state.isLocked = true; // Lock UI so player can't click
+            setTimeout(computerAI, 800);
         }
     }
 }
 
-/* --- 8. AI ENGINE (Hunt & Target) --- */
+/* --- 8. SMART AI (HUNT & TARGET) --- */
 function computerAI() {
     if(state.phase !== 'battle' || state.turn !== 2) return;
     
@@ -549,17 +555,16 @@ function computerAI() {
     const player = state.p1;
     let targetIdx = -1;
 
-    // 1. Target Strategy: Check stack
+    // Strategy 1: Target Adjacent (if we have a stack)
     while (state.aiTargetStack.length > 0) {
         const candidate = state.aiTargetStack.pop();
-        // Valid & Not Shot
         if (candidate >= 0 && candidate < 100 && !ai.shots.some(s => s.index === candidate)) {
             targetIdx = candidate;
             break;
         }
     }
 
-    // 2. Hunt Strategy: Random
+    // Strategy 2: Random Hunt
     if (targetIdx === -1) {
         const validMoves = [];
         for(let i=0; i<100; i++) {
@@ -581,7 +586,7 @@ function addNeighborsToStack(idx, shots) {
     const potential = [
         { r: y - 1, c: x }, { r: y + 1, c: x }, { r: y, c: x - 1 }, { r: y, c: x + 1 }
     ];
-    // Randomize order for "smart" feeling
+    // Shuffle to make AI less robotic
     potential.sort(() => Math.random() - 0.5);
 
     potential.forEach(p => {
@@ -603,12 +608,10 @@ function endGame(winner, reason) {
     const audioKey = (state.mode === 'computer' && !isWin) ? 'lose' : 'win';
     playSound(audioKey);
 
-    // Save Score (Only PvC Wins)
     if (state.mode === 'computer' && isWin) {
         saveScore(winner.name, winner.moves, winner.score, state.p1Seconds);
     }
 
-    // Update Modal
     const modal = document.getElementById('game-over-modal');
     document.getElementById('winner-title').textContent = reason;
     document.getElementById('winner-title').style.color = isWin ? 'gold' : 'red';
@@ -624,14 +627,11 @@ function endGame(winner, reason) {
 function saveScore(name, moves, score, time) {
     let scores = JSON.parse(localStorage.getItem('battleship_rank') || '[]');
     scores.push({ name, moves, score, time });
-    
-    // Sort: Fewest Moves > Shortest Time
+    // Sort: Moves ASC, then Time ASC
     scores.sort((a, b) => {
         if (a.moves !== b.moves) return a.moves - b.moves;
         return a.time - b.time;
     });
-    
-    // Keep top 10
     scores = scores.slice(0, 10);
     localStorage.setItem('battleship_rank', JSON.stringify(scores));
 }
@@ -655,7 +655,6 @@ function showTransition(nextName, callback) {
     const screen = DOM.screens.transition;
     document.getElementById('next-player-name').textContent = nextName;
     screen.classList.remove('hidden');
-    // One-time listener
     screen.querySelector('.btn-primary').onclick = () => {
         playSound('menu');
         screen.classList.add('hidden');
@@ -671,29 +670,19 @@ function initVolume() {
 function setVolume(val) {
     state.volume = parseFloat(val);
     localStorage.setItem('volume', state.volume);
-    // Update active audio elements? 
-    // Usually handled on play(), but let's force current updates if needed
 }
 
 function playSound(key) {
     const audio = DOM.audio[key];
     if(audio) {
-        audio.volume = state.volume; // Apply volume
+        audio.volume = state.volume;
         audio.currentTime = 0;
         audio.play().catch(()=>{}); 
     }
 }
 
-function togglePause() { 
-    playSound('menu'); 
-    alert("PAUSED"); 
-}
-
-function quitGame() { 
-    playSound('menu'); 
-    if(confirm("Exit to Main Menu?")) switchScreen('menu'); 
-}
-
+function togglePause() { playSound('menu'); alert("GAME PAUSED"); }
+function quitGame() { playSound('menu'); if(confirm("Abandon Mission?")) switchScreen('menu'); }
 function backToMenu() { switchScreen('menu'); }
 function restartGame() { switchScreen('menu'); }
 
@@ -719,6 +708,6 @@ function updateText() {
 
 function closeSettings() { DOM.screens.settings.classList.add('hidden'); }
 function openSettings() { 
-    initVolume(); // Ensure slider matches state
+    initVolume(); 
     DOM.screens.settings.classList.remove('hidden'); 
 }
